@@ -1,10 +1,15 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Empty.h"
+#include "std_msgs/Bool.h"
 #include <stdio.h>
 #include <signal.h>
 #include <SDL.h>
 #include <string.h>
+
+#define CAM_ROTATE_SPEED 2.5
+#define CAM_MAX_UP 20.0
+#define CAM_MAX_DOWN -70.0
 
 void doPub();
 bool isKeyDown(uint8_t);
@@ -89,6 +94,12 @@ ros::Publisher takeoff;
 ros::Publisher land;
 ros::Publisher reset;
 
+ros::Publisher camera;
+ros::Publisher snapshot;
+ros::Publisher record;
+
+double camCurrentRot = 0.0;
+
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "bebop_teleop");
 	ros::NodeHandle nh;
@@ -96,6 +107,9 @@ int main(int argc, char** argv) {
 	takeoff = nh.advertise<std_msgs::Empty>("bebop/takeoff", 1);
 	land = nh.advertise<std_msgs::Empty>("bebop/land", 1);
 	reset = nh.advertise<std_msgs::Empty>("bebop/reset", 1);
+	camera = nh.advertise<geometry_msgs::Twist>("bebop/camera_control", 1);
+	snapshot = nh.advertise<std_msgs::Empty>("bebop/snapshot", 1);
+	record = nh.advertise<std_msgs::Bool>("bebop/record", 1);
 
 
 	//publish at 20hz, inquire at 60
@@ -111,14 +125,16 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+
+	fprintf(stdout, "\nKeys:\nW: forward\tS: backward\nA: left\t\tD: right\nSPACE: up\tLSHIFT: down\nCTRL: land\tRSHIFT: takeoff\nENTER: emergency rotor shutdown\nUP: camera up\tDOWN: camera down\nLEFT: rotate left\tRIGHT: rotate right\n1: Take a camera snapshot\n2: start recording\t3: stop recording\n\nEnsure SDL Window is focused for input to be processed!\n");
 	int spinner = 5;
 	while(ros::ok() && input.get_key(new_event, pressed, code, modifiers)) {
 		ros::spinOnce();
 
 		//modify keysDown
 		if(new_event) {
-			if(pressed) ROS_INFO("Pressed %d (%d)", code, modifiers);
-			else ROS_INFO("Released %d (%d)", code, modifiers);
+			// if(pressed) ROS_INFO("Pressed %d (%d)", code, modifiers);
+			// else ROS_INFO("Released %d (%d)", code, modifiers);
 			spinner = 0; //force publish update
 			switch(code) {
 				case 119: //w
@@ -261,11 +277,44 @@ void doPub() {
 	velocity.publish(vel);
 
 	//camera control
-
+	geometry_msgs::Twist cam;
 	if(isKeyDown(9) && !isKeyDown(10)) {
 		//cam up
+		cam.angular.y = (camCurrentRot += CAM_ROTATE_SPEED);
+		goto STARTCAM;
 	} else if(!isKeyDown(9) && isKeyDown(10)) {
 		//cam down
+		cam.angular.y = (camCurrentRot -= CAM_ROTATE_SPEED);
+		goto STARTCAM;
+	}
+	goto ENDCAM; //skip cam publishing if no keys pressed
+	STARTCAM:
+
+	if(camCurrentRot >= CAM_MAX_UP) {
+		camCurrentRot = CAM_MAX_UP;
+		cam.angular.y = camCurrentRot;
+	} else if(camCurrentRot <= CAM_MAX_DOWN) {
+		camCurrentRot = CAM_MAX_DOWN;
+		cam.angular.y = camCurrentRot;
+	}
+
+	camera.publish(cam);
+
+	ENDCAM:
+	if(isKeyDown(13) && !isKeyDown(14) && !isKeyDown(15)) {
+		// move 1 (snapshot)
+		std_msgs::Empty m;
+		snapshot.publish(m);
+	} else if(!isKeyDown(13) && isKeyDown(14) && !isKeyDown(15)) {
+		// move 2 (start recording)
+		std_msgs::Bool m;
+		m.data = true;
+		record.publish(m);
+	} else if(!isKeyDown(13) && !isKeyDown(14) && isKeyDown(15)) {
+		// move 3 (stop recording)
+		std_msgs::Bool m;
+		m.data = false;
+		record.publish(m);
 	}
 }
 
