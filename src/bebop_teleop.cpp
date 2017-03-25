@@ -2,6 +2,7 @@
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Empty.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/UInt8.h"
 #include <stdio.h>
 #include <signal.h>
 #include <SDL.h>
@@ -13,16 +14,18 @@
 
 void doPub();
 bool isKeyDown(uint8_t);
+void doFlip(uint8_t);
+void doHome(uint16_t);
 
 class InputWindow {
-    public:
-    	InputWindow( bool& err );
-    	~InputWindow(void);
+	public:
+		InputWindow( bool& err );
+		~InputWindow(void);
 
-    	bool get_key(bool& new_event, bool& pressed, uint16_t& code, uint16_t& modifiers);
-
-    private:
-    	SDL_Surface* window;
+		bool get_key(bool& new_event, bool& pressed, uint16_t& code, uint16_t& modifiers);
+		SDL_Surface* getSurf();
+	private:
+		SDL_Surface* window;
 };
 
 InputWindow::InputWindow(bool& err) {
@@ -33,7 +36,7 @@ InputWindow::InputWindow(bool& err) {
 	}
 	SDL_EnableKeyRepeat( 0, SDL_DEFAULT_REPEAT_INTERVAL );
 	SDL_WM_SetCaption("Bebop_Teleop keyboard input", NULL);
-	window = SDL_SetVideoMode(100, 100, 0, 0);
+	window = SDL_SetVideoMode(200, 200, 0, 0);
 }
 
 InputWindow::~InputWindow(void) {
@@ -67,6 +70,10 @@ bool InputWindow::get_key(bool& new_event, bool& pressed, uint16_t& code, uint16
 	return true;
 }
 
+SDL_Surface* InputWindow::getSurf() {
+	return this->window;
+}
+
 /*
 b0=w -- forward -- 119
 b1=a -- left -- 97
@@ -97,6 +104,8 @@ ros::Publisher reset;
 ros::Publisher camera;
 ros::Publisher snapshot;
 ros::Publisher record;
+ros::Publisher flip;
+ros::Publisher home;
 
 double camCurrentRot = 0.0;
 
@@ -110,6 +119,8 @@ int main(int argc, char** argv) {
 	camera = nh.advertise<geometry_msgs::Twist>("bebop/camera_control", 1);
 	snapshot = nh.advertise<std_msgs::Empty>("bebop/snapshot", 1);
 	record = nh.advertise<std_msgs::Bool>("bebop/record", 1);
+	flip = nh.advertise<std_msgs::UInt8>("bebop/flip", 1);
+	home = nh.advertise<std_msgs::Bool>("bebop/autoflight/navigate_home", 1);
 
 
 	//publish at 20hz, inquire at 60
@@ -126,65 +137,94 @@ int main(int argc, char** argv) {
 	}
 
 
-	fprintf(stdout, "\nKeys:\nW: forward\tS: backward\nA: left\t\tD: right\nSPACE: up\tLSHIFT: down\nCTRL: land\tRSHIFT: takeoff\nENTER: emergency rotor shutdown\nUP: camera up\tDOWN: camera down\nLEFT: rotate left\tRIGHT: rotate right\n1: Take a camera snapshot\n2: start recording\t3: stop recording\n\nEnsure SDL Window is focused for input to be processed!\n");
+	fprintf(stdout, "\nKeys:\nW: forward\tS: backward\nA: left\t\tD: right\nSPACE: up\tLSHIFT: down\nCTRL: land\tRSHIFT: takeoff\nUP: camera up\tDOWN: camera down\nLEFT: rot left\tRIGHT: rot right\nENTER: emergency rotor shutdown\n2: start video\t3: end video\n1: Take a camera snapshot\nUse I, J, K, and L sparingly for arial flips. You can also use '[' and ']' to start and stop autohome navigation.\nEnsure SDL Window is focused for input to be processed!\n");
 	int spinner = 5;
 	while(ros::ok() && input.get_key(new_event, pressed, code, modifiers)) {
 		ros::spinOnce();
 
 		//modify keysDown
 		if(new_event) {
-			// if(pressed) ROS_INFO("Pressed %d (%d)", code, modifiers);
-			// else ROS_INFO("Released %d (%d)", code, modifiers);
+			if(pressed) {
+				// ROS_INFO("Pressed %d (%d)", code, modifiers);
+				SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 255, 255, 255));
+				SDL_UpdateRect(input.getSurf(),0,0,0,0);
+			} else {
+				// ROS_INFO("Released %d (%d)", code, modifiers);
+				if(keysDown == 0) {
+						SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 0, 0, 0));
+					SDL_UpdateRect(input.getSurf(),0,0,0,0);
+				}
+			}
 			spinner = 0; //force publish update
 			switch(code) {
 				case 119: //w
 					keysDown = pressed ? keysDown | 0x8000 : keysDown & 0x7FFF;
-					break;
+				break;
 				case 97: //a
 					keysDown = pressed ? keysDown | 0x4000 : keysDown & 0xBFFF;
-					break;
+				break;
 				case 115: //s
 					keysDown = pressed ? keysDown | 0x2000 : keysDown & 0xDFFF;
-					break;
+				break;
 				case 100: //d
 					keysDown = pressed ? keysDown | 0x1000 : keysDown & 0xEFFF;
-					break;
+				break;
 				case 32: //space
 					keysDown = pressed ? keysDown | 0x0800 : keysDown & 0xF7FF;
-					break;
+				break;
 				case 304: //lshift
 					keysDown = pressed ? keysDown | 0x0400 : keysDown & 0xFBFF;
-					break;
+				break;
 				case 306: //ctrl
 					keysDown = pressed ? keysDown | 0x0200 : keysDown & 0xFDFF;
-					break;
+				break;
 				case 13: //enter
 					keysDown = pressed ? keysDown | 0x0100 : keysDown & 0xFEFF;
-					break;
+				break;
 				case 303: //rshift
 					keysDown = pressed ? keysDown | 0x0080 : keysDown & 0xFF7F;
-					break;
+				break;
 				case 273: //up
 					keysDown = pressed ? keysDown | 0x0040 : keysDown & 0xFFBF;
-					break;
+				break;
 				case 274: //down
 					keysDown = pressed ? keysDown | 0x0020 : keysDown & 0xFFDF;
-					break;
+				break;
 				case 276: //left
 					keysDown = pressed ? keysDown | 0x0010 : keysDown & 0xFFEF;
-					break;
+				break;
 				case 275: //right
 					keysDown = pressed ? keysDown | 0x0008 : keysDown & 0xFFF7;
-					break;
+				break;
 				case 49: //1
 					keysDown = pressed ? keysDown | 0x0004 : keysDown & 0xFFFB;
-					break;
+				break;
 				case 50: //2
 					keysDown = pressed ? keysDown | 0x0002 : keysDown & 0xFFFD;
-					break;
+				break;
 				case 51: //3
 					keysDown = pressed ? keysDown | 0x0001 : keysDown & 0xFFFE;
-					break;
+				break;
+				//TODO: move snapshot and start/stop recording here, instead of in keysDown flag, to ensure one-press-one-execute.
+				//acrobatic maneuvers
+				case 105: //forward flip (i)
+					doFlip(0);
+				break;
+				case 107: //backward flip (k)
+					doFlip(1);
+				break;
+				case 108: //right flip (l)
+					doFlip(2);
+				break;
+				case 106: //left flip (j)
+					doFlip(3);
+				break;
+				case 91:
+				case 93:
+					doHome(code);
+				break;
+				default:
+					ROS_ERROR("%d (%d) is an unbound or unrecognized key!", code, modifiers);
 			}
 
 		}
@@ -316,6 +356,18 @@ void doPub() {
 		m.data = false;
 		record.publish(m);
 	}
+}
+
+void doFlip(uint8_t data) {
+	std_msgs::UInt8 m;
+	m.data = data;
+	flip.publish(m);
+}
+
+void doHome(uint16_t code) {
+	std_msgs::Bool m;
+	m.data = (code == 91 ? true : false);
+	home.publish(m);
 }
 
 bool isKeyDown(uint8_t index) {
