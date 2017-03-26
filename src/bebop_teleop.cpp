@@ -150,10 +150,8 @@ int main(int argc, char** argv) {
 				SDL_UpdateRect(input.getSurf(),0,0,0,0);
 			} else {
 				// ROS_INFO("Released %d (%d)", code, modifiers);
-				if(keysDown == 0) {
 						SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 0, 0, 0));
 					SDL_UpdateRect(input.getSurf(),0,0,0,0);
-				}
 			}
 			spinner = 0; //force publish update
 			switch(code) {
