@@ -107,6 +107,7 @@ ros::Publisher record;
 ros::Publisher flip;
 ros::Publisher home;
 
+bool sendVel = true;
 double camCurrentRot = 0.0;
 
 int main(int argc, char** argv) {
@@ -221,6 +222,14 @@ int main(int argc, char** argv) {
 				case 93:
 					doHome(code);
 				break;
+				case 48:
+					if(pressed) {
+						sendVel = !sendVel;
+						ROS_INFO("%s velocity publishing!", sendVel ? "Enabled" : "Disabled");
+						geometry_msgs::Twist vel;
+						velocity.publish(vel);
+					}
+				break;
 				default:
 					ROS_ERROR("%d (%d) is an unbound or unrecognized key!", code, modifiers);
 			}
@@ -312,7 +321,7 @@ void doPub() {
 		vel.angular.z = -1;
 	}
 
-	velocity.publish(vel);
+	if(sendVel) velocity.publish(vel);
 
 	//camera control
 	geometry_msgs::Twist cam;
