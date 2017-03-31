@@ -11,11 +11,14 @@
 #define CAM_ROTATE_SPEED 2.5
 #define CAM_MAX_UP 20.0
 #define CAM_MAX_DOWN -70.0
+#define SPEED_INCREMENT 0.05
+#define ROTATE_INCREMENT 0.125
 
 void doPub();
 bool isKeyDown(uint8_t);
 void doFlip(uint8_t);
 void doHome(uint16_t);
+void doCamera(uint16_t);
 
 class InputWindow {
 	public:
@@ -108,7 +111,10 @@ ros::Publisher flip;
 ros::Publisher home;
 
 bool sendVel = true;
+double speed = 1;
+double rotSpeed = 1;
 double camCurrentRot = 0.0;
+int counter;
 
 int main(int argc, char** argv) {
 	ros::init(argc, argv, "bebop_teleop");
@@ -142,7 +148,7 @@ int main(int argc, char** argv) {
 	int spinner = 5;
 	while(ros::ok() && input.get_key(new_event, pressed, code, modifiers)) {
 		ros::spinOnce();
-
+		counter++;
 		//modify keysDown
 		if(new_event) {
 			if(pressed) {
@@ -203,9 +209,15 @@ int main(int argc, char** argv) {
 				break;
 				case 51: //3
 					keysDown = pressed ? keysDown | 0x0001 : keysDown & 0xFFFE;
+					//special exception to ensure key presses are always registered for rotation speed
+					counter = 0;
 				break;
-				//TODO: move snapshot and start/stop recording here, instead of in keysDown flag, to ensure one-press-one-execute.
 				//acrobatic maneuvers
+				case 55:
+				case 56:
+				case 57:
+					doCamera(code);
+				break;
 				case 105: //forward flip (i)
 					doFlip(0);
 				break;
@@ -236,7 +248,7 @@ int main(int argc, char** argv) {
 
 		}
 
-		if(spinner-- < 0) {
+		if(spinner-- <= 0) {
 			doPub();
 			spinner=5;
 		}
@@ -287,38 +299,59 @@ void doPub() {
 		return;
 	}
 
+	if(isKeyDown(13) && !isKeyDown(14)) {
+		speed -= SPEED_INCREMENT;
+		goto CHECK_SPEED;
+	} else if(!isKeyDown(13) && isKeyDown(14)) {
+		speed += SPEED_INCREMENT;
+		goto CHECK_SPEED;
+	}
+	goto END_CHECK_SPEED;
+
+	CHECK_SPEED:
+	if(speed > 1 - SPEED_INCREMENT/2) speed = 1;
+	else if(speed < SPEED_INCREMENT/2) speed = SPEED_INCREMENT;
+	ROS_INFO("Speed: %f", speed);
+	END_CHECK_SPEED:
+	if(isKeyDown(15) && counter % 4 == 0) {
+		rotSpeed -= ROTATE_INCREMENT;
+		if(rotSpeed < -1 - ROTATE_INCREMENT/2) rotSpeed = 1;
+		if(rotSpeed == 0.0) rotSpeed = -ROTATE_INCREMENT;
+		ROS_INFO("Rotation speed: %f", rotSpeed);
+	}
+
 	geometry_msgs::Twist vel;
 
 	if(isKeyDown(0) && !isKeyDown(2)) {
 		//forward
-		vel.linear.x = 1;
+		vel.linear.x = speed;
 	} else if(!isKeyDown(0) && isKeyDown(2)) {
 		//backward
-		vel.linear.x = -1;
+		vel.linear.x = -speed;
 	}
 
 	if(isKeyDown(1) && !isKeyDown(3)) {
 		//left
-		vel.linear.y = 1;
+		vel.linear.y = speed;
 	} else if(!isKeyDown(1) && isKeyDown(3)) {
 		//right
-		vel.linear.y = -1;
+		vel.linear.y = -speed;
 	}
 
 	if(isKeyDown(4) && !isKeyDown(5)) {
 		//up
-		vel.linear.z = 1;
+		vel.linear.z = speed;
 	} else if(!isKeyDown(4) && isKeyDown(5)) {
 		//down
-		vel.linear.z = -1;
+		vel.linear.z = -speed;
 	}
 
 	if(isKeyDown(11) && !isKeyDown(12)) {
 		//rot left
-		vel.angular.z = 1;
+		vel.angular.z = rotSpeed;
 	} else if(!isKeyDown(11) && isKeyDown(12)) {
 		//right
-		vel.angular.z = -1;
+		vel.angular.z = -rotSpeed;
 	}
 
 	if(sendVel) velocity.publish(vel);
@@ -348,16 +381,21 @@ void doPub() {
 	camera.publish(cam);
 
 	ENDCAM:
-	if(isKeyDown(13) && !isKeyDown(14) && !isKeyDown(15)) {
+
+	return;
+}
+
+void doCamera(uint16_t code) {
+	if(code == 49) {
 		// move 1 (snapshot)
 		std_msgs::Empty m;
 		snapshot.publish(m);
-	} else if(!isKeyDown(13) && isKeyDown(14) && !isKeyDown(15)) {
+	} else if(code == 50) {
 		// move 2 (start recording)
 		std_msgs::Bool m;
 		m.data = true;
 		record.publish(m);
-	} else if(!isKeyDown(13) && !isKeyDown(14) && isKeyDown(15)) {
+	} else if(code == 51) {
 		// move 3 (stop recording)
 		std_msgs::Bool m;
 		m.data = false;
