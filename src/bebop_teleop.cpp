@@ -315,8 +315,7 @@ void doPub() {
 	END_CHECK_SPEED:
 	if(isKeyDown(15) && counter % 4 == 0) {
 		rotSpeed -= ROTATE_INCREMENT;
-		if(rotSpeed < -1 - ROTATE_INCREMENT/2) rotSpeed = 1;
-		if(rotSpeed == 0.0) rotSpeed = -ROTATE_INCREMENT;
+		if(rotSpeed < ROTATE_INCREMENT/2) rotSpeed = 1;
 		ROS_INFO("Rotation speed: %f", rotSpeed);
 	}
 
