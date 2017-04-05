@@ -5,7 +5,7 @@
 #include "std_msgs/UInt8.h"
 #include <stdio.h>
 #include <signal.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <string.h>
 
 #define CAM_ROTATE_SPEED 2.5
@@ -26,24 +26,37 @@ class InputWindow {
 		~InputWindow(void);
 
 		bool get_key(bool& new_event, bool& pressed, uint16_t& code, uint16_t& modifiers);
-		SDL_Surface* getSurf();
+		SDL_Window* getWindow();
+		SDL_Renderer* getRender();
 	private:
-		SDL_Surface* window;
+		// SDL_Surface* window;
+		SDL_Window* window;
+		SDL_Renderer* render;
 };
 
 InputWindow::InputWindow(bool& err) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		ROS_ERROR("SDL INIT FAIL: %s\n", SDL_GetError());
-		err=true;
+		err = true;
 		return;
 	}
-	SDL_EnableKeyRepeat( 0, SDL_DEFAULT_REPEAT_INTERVAL );
-	SDL_WM_SetCaption("Bebop_Teleop keyboard input", NULL);
-	window = SDL_SetVideoMode(200, 200, 0, 0);
+	// SDL_EnableKeyRepeat( 0, SDL_DEFAULT_REPEAT_INTERVAL );
+	//SDL 1.2
+	// SDL_WM_SetCaption("Bebop_Teleop keyboard input", NULL);
+	// window = SDL_SetVideoMode(200, 200, 0, 0);
+	SDL_CreateWindowAndRenderer(200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_GRABBED, &window, &render);
+	if(window == NULL || render == NULL) {
+		ROS_ERROR("SDL CREATE WINDOW FAIL: %s\n", SDL_GetError());
+		err = true;
+		return;
+	}
+
+	err = false;
 }
 
 InputWindow::~InputWindow(void) {
-	SDL_FreeSurface(window);
+	SDL_DestroyRenderer(this->render);
+	SDL_DestroyWindow(this->window);
 	SDL_Quit();
 }
 
@@ -58,13 +71,15 @@ bool InputWindow::get_key(bool& new_event, bool& pressed, uint16_t& code, uint16
 				code = event.key.keysym.sym;
 				modifiers = event.key.keysym.mod;
 				new_event = true;
-				break;
+			break;
 			case SDL_KEYDOWN:
-				pressed = true;
-				code = event.key.keysym.sym;
-				modifiers = event.key.keysym.mod;
-				new_event = true;
-				break;
+				if(event.key.repeat == 0) {
+					pressed = true;
+					code = event.key.keysym.sym;
+					modifiers = event.key.keysym.mod;
+					new_event = true;
+				}
+			break;
 			case SDL_QUIT:
 				return false;
 			break;
@@ -73,8 +88,12 @@ bool InputWindow::get_key(bool& new_event, bool& pressed, uint16_t& code, uint16
 	return true;
 }
 
-SDL_Surface* InputWindow::getSurf() {
+SDL_Window* InputWindow::getWindow() {
 	return this->window;
+}
+
+SDL_Renderer* InputWindow::getRender() {
+	return this->render;
 }
 
 /*
@@ -153,12 +172,12 @@ int main(int argc, char** argv) {
 		if(new_event) {
 			if(pressed) {
 				// ROS_INFO("Pressed %d (%d)", code, modifiers);
-				SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 255, 255, 255));
-				SDL_UpdateRect(input.getSurf(),0,0,0,0);
+				// SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 255, 255, 255));
+				// SDL_UpdateRect(input.getSurf(),0,0,0,0);
 			} else {
 				// ROS_INFO("Released %d (%d)", code, modifiers);
-						SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 0, 0, 0));
-					SDL_UpdateRect(input.getSurf(),0,0,0,0);
+						// SDL_FillRect(input.getSurf(), NULL, SDL_MapRGB(input.getSurf()->format, 0, 0, 0));
+					// SDL_UpdateRect(input.getSurf(),0,0,0,0);
 			}
 			spinner = 0; //force publish update
 			switch(code) {

@@ -6,24 +6,29 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	std_msgs
 )
-find_package(SDL REQUIRED)
+
+#find_package(SDL2 REQUIRED sdl2)
+include(FindPkgConfig)
+pkg_search_module(SDL2 REQUIRED sdl2)
+#pkg_check_modules(SDL204 sdl2>=2.0.4)
+
 
 catkin_package(
 #	INCLUDE_DIRS include
 #	LIBRARIES bebop_teleop
 #	CATKIN_DEPENDS geometry_msgs roscpp std_msgs
-#	DEPENDS system_lib ${SDL_LIBRARY}
+#	DEPENDS system_lib ${SDL2_LIBRARY}
 )
 
 catkin_package()
 
 include_directories(
-	include ${catkin_INCLUDE_DIRS} ${SDL_INCLUDE_DIR}
+	include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
 )
 
 add_executable( bebop_teleop src/bebop_teleop.cpp )
 
 target_link_libraries( bebop_teleop
+	${SDL2_LIBRARIES}
 	${catkin_LIBRARIES}
-	${SDL_LIBRARY}
 )

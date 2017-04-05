@@ -43,11 +43,11 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>sdl</build_depend>
+  <build_depend>sdl2</build_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>sdl</run_depend>
+  <run_depend>sdl2</run_depend>
 
 
 
