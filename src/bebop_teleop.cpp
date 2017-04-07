@@ -237,23 +237,23 @@ int main(int argc, char** argv) {
 				case 57:
 					doCamera(code);
 				break;
-				case 105: //forward flip (i)
+				case SDL_SCANCODE_I: //forward flip (i)
 					doFlip(0);
 				break;
-				case 107: //backward flip (k)
+				case SDL_SCANCODE_K: //backward flip (k)
 					doFlip(1);
 				break;
-				case 108: //right flip (l)
+				case SDL_SCANCODE_L: //right flip (l)
 					doFlip(2);
 				break;
-				case 106: //left flip (j)
+				case SDL_SCANCODE_J: //left flip (j)
 					doFlip(3);
 				break;
 				case 91:
 				case 93:
 					doHome(code);
 				break;
-				case 48:
+				case SDL_SCANCODE_0:
 					if(pressed) {
 						sendVel = !sendVel;
 						ROS_INFO("%s velocity publishing!", sendVel ? "Enabled" : "Disabled");
