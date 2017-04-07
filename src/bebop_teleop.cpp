@@ -44,7 +44,7 @@ InputWindow::InputWindow(bool& err) {
 	//SDL 1.2
 	// SDL_WM_SetCaption("Bebop_Teleop keyboard input", NULL);
 	// window = SDL_SetVideoMode(200, 200, 0, 0);
-	SDL_CreateWindowAndRenderer(200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_GRABBED, &window, &render);
+	SDL_CreateWindowAndRenderer(200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE, &window, &render);
 	if(window == NULL || render == NULL) {
 		ROS_ERROR("SDL CREATE WINDOW FAIL: %s\n", SDL_GetError());
 		err = true;
@@ -68,14 +68,14 @@ bool InputWindow::get_key(bool& new_event, bool& pressed, uint16_t& code, uint16
 		switch(event.type) {
 			case SDL_KEYUP:
 				pressed = false;
-				code = event.key.keysym.sym;
+				code = event.key.keysym.scancode;
 				modifiers = event.key.keysym.mod;
 				new_event = true;
 			break;
 			case SDL_KEYDOWN:
 				if(event.key.repeat == 0) {
 					pressed = true;
-					code = event.key.keysym.sym;
+					code = event.key.keysym.scancode;
 					modifiers = event.key.keysym.mod;
 					new_event = true;
 				}
@@ -181,52 +181,52 @@ int main(int argc, char** argv) {
 			}
 			spinner = 0; //force publish update
 			switch(code) {
-				case 119: //w
+				case SDL_SCANCODE_W: //w
 					keysDown = pressed ? keysDown | 0x8000 : keysDown & 0x7FFF;
 				break;
-				case 97: //a
+				case SDL_SCANCODE_A: //a
 					keysDown = pressed ? keysDown | 0x4000 : keysDown & 0xBFFF;
 				break;
-				case 115: //s
+				case SDL_SCANCODE_S: //s
 					keysDown = pressed ? keysDown | 0x2000 : keysDown & 0xDFFF;
 				break;
-				case 100: //d
+				case SDL_SCANCODE_D: //d
 					keysDown = pressed ? keysDown | 0x1000 : keysDown & 0xEFFF;
 				break;
-				case 32: //space
+				case SDL_SCANCODE_SPACE: //space
 					keysDown = pressed ? keysDown | 0x0800 : keysDown & 0xF7FF;
 				break;
-				case 304: //lshift
+				case SDL_SCANCODE_LSHIFT: //lshift
 					keysDown = pressed ? keysDown | 0x0400 : keysDown & 0xFBFF;
 				break;
-				case 306: //ctrl
+				case SDL_SCANCODE_LCTRL: //ctrl
 					keysDown = pressed ? keysDown | 0x0200 : keysDown & 0xFDFF;
 				break;
-				case 13: //enter
+				case SDL_SCANCODE_RETURN: //enter
 					keysDown = pressed ? keysDown | 0x0100 : keysDown & 0xFEFF;
 				break;
-				case 303: //rshift
+				case SDL_SCANCODE_RSHIFT: //rshift
 					keysDown = pressed ? keysDown | 0x0080 : keysDown & 0xFF7F;
 				break;
-				case 273: //up
+				case SDL_SCANCODE_UP: //up
 					keysDown = pressed ? keysDown | 0x0040 : keysDown & 0xFFBF;
 				break;
-				case 274: //down
+				case SDL_SCANCODE_DOWN: //down
 					keysDown = pressed ? keysDown | 0x0020 : keysDown & 0xFFDF;
 				break;
-				case 276: //left
+				case SDL_SCANCODE_LEFT: //left
 					keysDown = pressed ? keysDown | 0x0010 : keysDown & 0xFFEF;
 				break;
-				case 275: //right
+				case SDL_SCANCODE_RIGHT: //right
 					keysDown = pressed ? keysDown | 0x0008 : keysDown & 0xFFF7;
 				break;
-				case 49: //1
+				case SDL_SCANCODE_1: //1
 					keysDown = pressed ? keysDown | 0x0004 : keysDown & 0xFFFB;
 				break;
-				case 50: //2
+				case SDL_SCANCODE_2: //2
 					keysDown = pressed ? keysDown | 0x0002 : keysDown & 0xFFFD;
 				break;
-				case 51: //3
+				case SDL_SCANCODE_3: //3
 					keysDown = pressed ? keysDown | 0x0001 : keysDown & 0xFFFE;
 					//special exception to ensure key presses are always registered for rotation speed
 					counter = 0;

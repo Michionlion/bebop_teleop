@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 )
 
-#find_package(SDL2 REQUIRED sdl2)
+#find_package(SDL REQUIRED)
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
 #pkg_check_modules(SDL204 sdl2>=2.0.4)
