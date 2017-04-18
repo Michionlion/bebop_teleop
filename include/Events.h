@@ -6,8 +6,7 @@
 
 class Listener {
 public:
-	Listener(void);
-	virtual void event(SDL_Event*);
+	virtual void event(SDL_Event*) = 0;
 };
 
 extern std::vector<Listener*> eventListeners;

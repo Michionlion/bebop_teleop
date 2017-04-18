@@ -2,7 +2,7 @@
 
 std::vector<Listener*> eventListeners;
 
-Listener::Listener() {}
+// void Listener::event(SDL_Event* e) {}
 
 void eventPoll() {
 	SDL_Event* e = NULL;
