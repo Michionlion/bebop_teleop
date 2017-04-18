@@ -20,6 +20,8 @@ InputWindow::InputWindow(bool& err) {
 	}
 
 	err = false;
+
+	registerEventCallback(this);
 }
 
 InputWindow::~InputWindow(void) {
@@ -28,37 +30,17 @@ InputWindow::~InputWindow(void) {
 	SDL_Quit();
 }
 
-bool InputWindow::get_key(bool& new_event, bool& pressed, uint16_t& code, uint16_t& modifiers) {
-	new_event = false;
+void InputWindow::event(SDL_Event* event) {
+	ROS_INFO("EVENT");
+	switch(event->type) {
+	case SDL_KEYUP:
 
-	SDL_Event event;
-	if( SDL_PollEvent(&event) )
-		switch(event.type) {
-		case SDL_KEYUP:
-			pressed = false;
-			code = event.key.keysym.scancode;
-			modifiers = event.key.keysym.mod;
-			new_event = true;
-			break;
+		break;
 
-		case SDL_KEYDOWN:
-			if(event.key.repeat == 0) {
-				pressed = true;
-				code = event.key.keysym.scancode;
-				modifiers = event.key.keysym.mod;
-				new_event = true;
-			}
-			break;
-
-		case SDL_QUIT:
-			return false;
-
-			break;
-		}
-
-
-
-	return true;
+	case SDL_KEYDOWN:
+		if(event->key.repeat == 0) {}
+		break;
+	}
 }
 
 SDL_Window* InputWindow::getWindow() {

@@ -16,20 +16,6 @@ void ManualControl::toggle() {
 }
 
 void ManualControl::publishVel() {
-	// char* s = (char*) malloc(17);
-	// for(int i = 0; i < 16; i++) {
-	// if(((keysDown >> (15-i)) & 1) == 1) {
-	// s[i] = '1';
-	// } else {
-	// s[i] = '0';
-	// }
-	// }
-	// s[16] = '\0';
-	//
-	//
-	//
-	//
-	// ROS_INFO("PUBLISHED VEL WITH INFO: %s", s);
 	if( isKeyDown(6) ) {
 		// land
 		flying = false;
