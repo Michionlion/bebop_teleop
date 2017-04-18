@@ -1,6 +1,8 @@
 #include "InputWindow.h"
 #include <ros/ros.h>
 
+InputWindow* input;
+
 InputWindow::InputWindow(bool& err) {
 	if(SDL_Init(SDL_INIT_VIDEO) < 0) {
 		ROS_ERROR( "SDL INIT FAIL: %s\n", SDL_GetError() );
@@ -21,7 +23,9 @@ InputWindow::InputWindow(bool& err) {
 
 	err = false;
 
-	registerEventCallback(this);
+	registerEventListener(this);
+	input = this;
+	keysDown = SDL_GetKeyboardState(NULL);
 }
 
 InputWindow::~InputWindow(void) {
@@ -34,13 +38,29 @@ void InputWindow::event(SDL_Event* event) {
 	ROS_INFO("EVENT");
 	switch(event->type) {
 	case SDL_KEYUP:
-
-		break;
-
 	case SDL_KEYDOWN:
-		if(event->key.repeat == 0) {}
-		break;
+		for(auto & el : keyListeners) el->key(&event->key);
 	}
+}
+
+bool InputWindow::isKeyDown(SDL_Scancode code) {
+	return keysDown[code];
+}
+
+void InputWindow::registerKeyListener(KeyListener* lis) {
+	keyListeners.push_back(lis);
+}
+
+bool InputWindow::unregisterKeyListener(KeyListener* lis) {
+	auto beg = keyListeners.begin();
+	auto end = keyListeners.end();
+	for(; beg != end; ++beg) {
+		if( (*beg) == lis ) {
+			keyListeners.erase(beg);
+			return true;
+		}
+	}
+	return false;
 }
 
 SDL_Window* InputWindow::getWindow() {

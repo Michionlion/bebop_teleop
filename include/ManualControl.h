@@ -1,3 +1,5 @@
+#ifndef __MANUAL_H__
+#define __MANUAL_H__
 #include <ros/ros.h>
 #define VELOCITY 0
 #define TAKEOFF 1
@@ -22,7 +24,7 @@ public:
 
 private:
 	bool enabled;
-	bool canFlip;
-
 	ros::Publisher pub[9];
 };
+
+#endif

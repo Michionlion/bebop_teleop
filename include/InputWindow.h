@@ -1,9 +1,14 @@
+#ifndef __INPUT_H__
+#define __INPUT_H__
+
 #include "Events.h"
 #include <SDL2/SDL.h>
 #include <vector>
 
-// Listener points to a function that accepts a keyboard event and returns void
-typedef void (*KeyListener)(SDL_KeyboardEvent*);
+class KeyListener {
+public:
+	virtual void key(SDL_KeyboardEvent*);
+};
 
 class InputWindow : Listener {
 public:
@@ -15,11 +20,17 @@ public:
 	SDL_Renderer* getRender(void);
 
 	bool isKeyDown(SDL_Scancode);
-	void registerListener(KeyListener);
+	void registerKeyListener(KeyListener*);
+	bool unregisterKeyListener(KeyListener*);
+
 private:
 	// SDL_Surface* window;
 	SDL_Window* window;
 	SDL_Renderer* render;
-	std::vector<KeyListener> listeners;
-	std::vector<SDL_Scancode> keysDown;
+	std::vector<KeyListener*> keyListeners;
+	const Uint8* keysDown;
 };
+
+extern InputWindow* input;
+
+#endif

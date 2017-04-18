@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(bebop_teleop)
 
+add_definitions(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	roscpp
@@ -14,19 +16,14 @@ pkg_search_module(SDL2 REQUIRED sdl2)
 
 
 catkin_package(
-#	INCLUDE_DIRS include
-#	LIBRARIES bebop_teleop
-#	CATKIN_DEPENDS geometry_msgs roscpp std_msgs
-#	DEPENDS system_lib ${SDL2_LIBRARY}
+	INCLUDE_DIRS include
+	LIBRARIES bebop_teleop
+	CATKIN_DEPENDS geometry_msgs roscpp std_msgs
+	DEPENDS ${SDL2_LIBRARY}
 )
+include_directories(include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-catkin_package()
-
-include_directories(
-	include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
-)
-
-add_executable( bebop_teleop src/bebop_teleop.cpp )
+add_executable( bebop_teleop src/Events.cpp src/InputWindow.cpp src/ManualControl.cpp src/main.cpp)
 
 target_link_libraries( bebop_teleop
 	${SDL2_LIBRARIES}

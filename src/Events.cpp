@@ -1,22 +1,20 @@
 #include "Events.h"
-#include <algorithm>
 
-void EventDistributor::poll() {
+std::vector<Listener*> eventListeners;
+
+Listener::Listener() {}
+
+void eventPoll() {
 	SDL_Event* e = NULL;
-	if(SDL_PollEvent(e) && e != NULL) {
-		auto beg = eventListeners.begin();
-		auto end = eventListeners.end();
-		for(; beg != end; ++beg) {
-			(*beg)(e);
-		}
-	}
+	if(SDL_PollEvent(e) && e != NULL)
+		for(auto & el : eventListeners) el->event(e);
 }
 
-void registerEventCallback(EventListener lis) {
+void registerEventListener(Listener* lis) {
 	eventListeners.push_back(lis);
 }
 
-bool unregisterEventCallback(EventListener lis) {
+bool unregisterEventListener(Listener* lis) {
 	auto beg = eventListeners.begin();
 	auto end = eventListeners.end();
 	for(; beg != end; ++beg) {
