@@ -1,17 +1,20 @@
 #include "Events.h"
+#include <ros/ros.h>
 
 std::vector<Listener*> eventListeners;
 
 // void Listener::event(SDL_Event* e) {}
 
 void eventPoll() {
-	SDL_Event* e = NULL;
-	if(SDL_PollEvent(e) && e != NULL)
-		for(auto & el : eventListeners) el->event(e);
+	SDL_Event e;
+	while( SDL_PollEvent(&e) )
+		for(auto & el : eventListeners) el->event(&e);
 }
 
 void registerEventListener(Listener* lis) {
+	ROS_INFO("REGISTERED");
 	eventListeners.push_back(lis);
+	ROS_INFO( "SIZE: %ld", eventListeners.size() );
 }
 
 bool unregisterEventListener(Listener* lis) {

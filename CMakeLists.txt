@@ -23,7 +23,7 @@ catkin_package(
 )
 include_directories(include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-add_executable( bebop_teleop src/Events.cpp src/InputWindow.cpp src/ManualControl.cpp src/main.cpp)
+add_executable( bebop_teleop src/Events.cpp src/Input.cpp src/Window.cpp src/ManualControl.cpp src/main.cpp)
 
 target_link_libraries( bebop_teleop
 	${SDL2_LIBRARIES}

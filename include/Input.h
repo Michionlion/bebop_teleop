@@ -10,14 +10,10 @@ public:
 	virtual void key(SDL_KeyboardEvent*);
 };
 
-class InputWindow : Listener {
+class Input : Listener {
 public:
-	InputWindow(bool& err);
-	~InputWindow(void);
-
+	Input(void);
 	void event(SDL_Event*);
-	SDL_Window* getWindow(void);
-	SDL_Renderer* getRender(void);
 
 	bool isKeyDown(SDL_Scancode);
 	void registerKeyListener(KeyListener*);
@@ -25,12 +21,10 @@ public:
 
 private:
 	// SDL_Surface* window;
-	SDL_Window* window;
-	SDL_Renderer* render;
 	std::vector<KeyListener*> keyListeners;
 	const Uint8* keysDown;
 };
 
-extern InputWindow* input;
+extern Input input;
 
 #endif
