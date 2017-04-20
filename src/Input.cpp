@@ -12,8 +12,10 @@ void Input::event(SDL_Event* event) {
 	switch(event->type) {
 	case SDL_KEYUP:
 	case SDL_KEYDOWN:
-		ROS_INFO("KEYEVENT");
-		for(auto & el : keyListeners) el->key(&event->key);
+		if(event->key.repeat < 1) {
+			ROS_INFO("KEYEVENT");
+			for(auto & el : keyListeners) el->key(&event->key);
+		}
 		break;
 	}
 }

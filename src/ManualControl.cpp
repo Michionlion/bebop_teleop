@@ -15,6 +15,9 @@
 #define START_RECORDING 1
 #define STOP_RECORDING 2
 #define TAKE_SNAPSHOT 3
+#define DO_LAND 4
+#define DO_TAKEOFF 5
+#define DO_RESET 6
 
 
 ManualControl::ManualControl() {
@@ -60,6 +63,18 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			doFlip(3);
 			break;
 
+		case SDL_SCANCODE_LCTRL:
+			doMisc(DO_LAND);
+			break;
+
+		case SDL_SCANCODE_RSHIFT:
+			doMisc(DO_TAKEOFF);
+			break;
+
+		case SDL_SCANCODE_RETURN:
+			doMisc(DO_RESET);
+			break;
+
 		default:
 			return;
 		}
@@ -82,23 +97,6 @@ bool ManualControl::isEnabled() {
 }
 
 void ManualControl::publishVel() {
-	if( input.isKeyDown(SDL_SCANCODE_LCTRL) ) {
-		std_msgs::Empty m;
-		pub[LAND].publish(m);
-		ROS_INFO("EXECUTING LAND!!");
-		return;
-	} else if( input.isKeyDown(SDL_SCANCODE_RETURN) ) {
-		std_msgs::Empty m;
-		pub[RESET].publish(m);
-		ROS_INFO("EXECUTING EMERGENCY ROTOR STOP!!");
-		return;
-	} else if( input.isKeyDown(SDL_SCANCODE_LSHIFT) ) {
-		std_msgs::Empty m;
-		pub[TAKEOFF].publish(m);
-		ROS_INFO("EXECUTING TAKEOFF!!");
-		return;
-	}
-
 	if( input.isKeyDown(SDL_SCANCODE_1) && !input.isKeyDown(SDL_SCANCODE_2) ) {
 		speed -= SPEED_INCREMENT;
 		goto CHECK_SPEED;
@@ -137,8 +135,8 @@ END_CHECK_ROT_SPEED:
 	if( input.isKeyDown(SDL_SCANCODE_D) && !input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = speed;
 	else if( !input.isKeyDown(SDL_SCANCODE_D) && input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_SPACE) && !input.isKeyDown(SDL_SCANCODE_RSHIFT) ) vel.linear.z = speed;
-	else if( !input.isKeyDown(SDL_SCANCODE_SPACE) && input.isKeyDown(SDL_SCANCODE_RSHIFT) ) vel.linear.z = -speed;
+	if( input.isKeyDown(SDL_SCANCODE_SPACE) && !input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = speed;
+	else if( !input.isKeyDown(SDL_SCANCODE_SPACE) && input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = -speed;
 
 	if( input.isKeyDown(SDL_SCANCODE_LEFT) && !input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = rotSpeed;
 	else if( !input.isKeyDown(SDL_SCANCODE_LEFT) && input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = -rotSpeed;
@@ -185,6 +183,18 @@ void ManualControl::doMisc(short type) {
 	} else if(type == TAKE_SNAPSHOT) {
 		std_msgs::Empty m;
 		pub[SNAPSHOT].publish(m);
+	} else if(type == DO_LAND) {
+		std_msgs::Empty m;
+		pub[LAND].publish(m);
+		ROS_INFO("EXECUTING LAND!!");
+	} else if(type == DO_RESET) {
+		std_msgs::Empty m;
+		pub[RESET].publish(m);
+		ROS_INFO("EXECUTING EMERGENCY ROTOR STOP!!");
+	} else if(type == DO_TAKEOFF) {
+		std_msgs::Empty m;
+		pub[TAKEOFF].publish(m);
+		ROS_INFO("EXECUTING TAKEOFF!!");
 	}
 }
 

@@ -30,8 +30,8 @@ public:
 private:
 	bool enabled;
 	ros::Publisher pub[9];
-	double speed;
-	double rotSpeed;
+	double speed = 0.7;
+	double rotSpeed = 0.7;
 	double camCurrentRot;
 };
 
