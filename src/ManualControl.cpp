@@ -12,10 +12,59 @@
 #define SPEED_INCREMENT 0.05
 #define ROTATE_INCREMENT 0.125
 
+#define START_RECORDING 1
+#define STOP_RECORDING 2
+#define TAKE_SNAPSHOT 3
 
-ManualControl::ManualControl() {}
 
-ManualControl::~ManualControl() {}
+ManualControl::ManualControl() {
+	input.registerKeyListener(this);
+}
+
+ManualControl::~ManualControl() {
+	input.unregisterKeyListener(this);
+}
+
+void ManualControl::key(SDL_KeyboardEvent* event) {
+	if(event->type == SDL_KEYDOWN)
+		switch(event->keysym.scancode) {
+		case SDL_SCANCODE_RIGHTBRACKET:
+			doMisc(START_RECORDING);
+			break;
+
+		case SDL_SCANCODE_LEFTBRACKET:
+			doMisc(STOP_RECORDING);
+			break;
+
+		case SDL_SCANCODE_BACKSLASH:
+			doMisc(TAKE_SNAPSHOT);
+			break;
+
+		case SDL_SCANCODE_0:
+			toggle();
+			break;
+
+		case SDL_SCANCODE_I:
+			doFlip(0);
+			break;
+
+		case SDL_SCANCODE_K:
+			doFlip(1);
+			break;
+
+		case SDL_SCANCODE_L:
+			doFlip(2);
+			break;
+
+		case SDL_SCANCODE_J:
+			doFlip(3);
+			break;
+
+		default:
+			return;
+		}
+
+}
 
 void ManualControl::setPub(int index, ros::Publisher publisher) {
 	pub[index] = publisher;
@@ -23,146 +72,130 @@ void ManualControl::setPub(int index, ros::Publisher publisher) {
 
 void ManualControl::toggle() {
 	enabled = !enabled;
-	ROS_INFO("%s velocity publishing!", enabled ? "Enabled" : "Disabled");
+	ROS_INFO("%s manual control!", enabled ? "Enabled" : "Disabled");
 	geometry_msgs::Twist vel;
 	pub[VELOCITY].publish(vel);
 }
 
+bool ManualControl::isEnabled() {
+	return enabled;
+}
+
 void ManualControl::publishVel() {
-	// if( input->isKeyDown(6) ) {
-	// // land
-	// flying = false;
-	// std_msgs::Empty m;
-	// land.publish(m);
-	// ROS_INFO("EXECUTING LAND!!");
-	// return;
-	// }
-	// if( input->isKeyDown(7) ) {
-	// flying = false;
-	// std_msgs::Empty m;
-	// reset.publish(m);
-	// ROS_INFO("EXECUTING EMERGENCY ROTOR STOP!!");
-	// return;
-	// }
-	// if( input->isKeyDown(8) ) {
-	// // land
-	// // flying = true;
-	// std_msgs::Empty m;
-	//
-	// // takeoff.publish(m);
-	// ROS_INFO("EXECUTING TAKEOFF!!");
-	// return;
-	// }
+	if( input.isKeyDown(SDL_SCANCODE_LCTRL) ) {
+		std_msgs::Empty m;
+		pub[LAND].publish(m);
+		ROS_INFO("EXECUTING LAND!!");
+		return;
+	} else if( input.isKeyDown(SDL_SCANCODE_RETURN) ) {
+		std_msgs::Empty m;
+		pub[RESET].publish(m);
+		ROS_INFO("EXECUTING EMERGENCY ROTOR STOP!!");
+		return;
+	} else if( input.isKeyDown(SDL_SCANCODE_LSHIFT) ) {
+		std_msgs::Empty m;
+		pub[TAKEOFF].publish(m);
+		ROS_INFO("EXECUTING TAKEOFF!!");
+		return;
+	}
 
-	// if( input->isKeyDown(13) && !input->isKeyDown(14) ) {
-	// speed -= SPEED_INCREMENT;
-	// goto CHECK_SPEED;
-	// } else if( !input->isKeyDown(13) && input->isKeyDown(14) ) {
-	// speed += SPEED_INCREMENT;
-	goto CHECK_SPEED;
-
-	// }
+	if( input.isKeyDown(SDL_SCANCODE_1) && !input.isKeyDown(SDL_SCANCODE_2) ) {
+		speed -= SPEED_INCREMENT;
+		goto CHECK_SPEED;
+	} else if( !input.isKeyDown(SDL_SCANCODE_1) && input.isKeyDown(SDL_SCANCODE_2) ) {
+		speed += SPEED_INCREMENT;
+		goto CHECK_SPEED;
+	}
 	goto END_CHECK_SPEED;
 
 CHECK_SPEED:
+	if(speed >= 1 - SPEED_INCREMENT / 2) speed = 1;
+	else if(speed < SPEED_INCREMENT / 2) speed = SPEED_INCREMENT;
+	ROS_INFO("Speed: %f", speed);
 
-	// if(speed > 1 - SPEED_INCREMENT / 2) speed = 1;
-	// else if(speed < SPEED_INCREMENT / 2) speed = SPEED_INCREMENT;
-	// ROS_INFO("Speed: %f", speed);
 END_CHECK_SPEED:
+	if( input.isKeyDown(SDL_SCANCODE_3) && !input.isKeyDown(SDL_SCANCODE_4) ) {
+		rotSpeed -= ROTATE_INCREMENT;
+		goto CHECK_ROT_SPEED;
+	} else if( !input.isKeyDown(SDL_SCANCODE_3) && input.isKeyDown(SDL_SCANCODE_4) ) {
+		rotSpeed += ROTATE_INCREMENT;
+		goto CHECK_ROT_SPEED;
+	}
+	goto END_CHECK_ROT_SPEED;
 
-	// if(isKeyDown(15) && counter % 4 == 0) {
-	// rotSpeed -= ROTATE_INCREMENT;
-	// if(rotSpeed < -1 - ROTATE_INCREMENT / 2) rotSpeed = 1;
-	// if(rotSpeed == 0.0) rotSpeed = -ROTATE_INCREMENT;
-	// ROS_INFO("Rotation speed: %f", rotSpeed);
-// }
+CHECK_ROT_SPEED:
+	if(rotSpeed >= 1 - ROTATE_INCREMENT / 2) rotSpeed = 1;
+	else if(rotSpeed < ROTATE_INCREMENT / 2) rotSpeed = ROTATE_INCREMENT;
+	ROS_INFO("Rotation speed: %f", rotSpeed);
 
+END_CHECK_ROT_SPEED:
 	geometry_msgs::Twist vel;
 
-// if( input->isKeyDown(0) && !input->isKeyDown(2) )
-// // forward
-// vel.linear.x = speed;
-// else if( !input->isKeyDown(0) && input->isKeyDown(2) )
-// // backward
-// vel.linear.x = -speed;
-//
-// if( input->isKeyDown(1) && !input->isKeyDown(3) )
-// // left
-// vel.linear.y = speed;
-// else if( !input->isKeyDown(1) && input->isKeyDown(3) )
-// // right
-// vel.linear.y = -speed;
+	if( input.isKeyDown(SDL_SCANCODE_W) && !input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = speed;
+	else if( !input.isKeyDown(SDL_SCANCODE_W) && input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = -speed;
 
-// if( input->isKeyDown(4) && !input->isKeyDown(5) )
-// // up
-// vel.linear.z = speed;
-// else if( !input->isKeyDown(4) && input->isKeyDown(5) )
-// // down
-// vel.linear.z = -speed;
-//
-// if( input->isKeyDown(11) && !input->isKeyDown(12) )
-// // rot left
-// vel.angular.z = rotSpeed;
-// else if( !input->isKeyDown(11) && input->isKeyDown(12) )
-// // right
-// vel.angular.z = -rotSpeed;
+	if( input.isKeyDown(SDL_SCANCODE_D) && !input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = speed;
+	else if( !input.isKeyDown(SDL_SCANCODE_D) && input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = -speed;
 
-// camera control
-	geometry_msgs::Twist cam;
+	if( input.isKeyDown(SDL_SCANCODE_SPACE) && !input.isKeyDown(SDL_SCANCODE_RSHIFT) ) vel.linear.z = speed;
+	else if( !input.isKeyDown(SDL_SCANCODE_SPACE) && input.isKeyDown(SDL_SCANCODE_RSHIFT) ) vel.linear.z = -speed;
 
-// if( input->isKeyDown(9) && !input->isKeyDown(10) ) {
-// // cam up
-// cam.angular.y = (camCurrentRot += CAM_ROTATE_SPEED);
-// goto STARTCAM;
-// } else if( !input->isKeyDown(9) && input->isKeyDown(10) ) {
-// // cam down
-// cam.angular.y = (camCurrentRot -= CAM_ROTATE_SPEED);
-// goto STARTCAM;
-// }
-// goto ENDCAM;// skip cam publishing if no keys pressed
-// STARTCAM:
+	if( input.isKeyDown(SDL_SCANCODE_LEFT) && !input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = rotSpeed;
+	else if( !input.isKeyDown(SDL_SCANCODE_LEFT) && input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = -rotSpeed;
 
-// if(camCurrentRot >= CAM_MAX_UP) {
-// camCurrentRot = CAM_MAX_UP;
-// cam.angular.y = camCurrentRot;
-// } else if(camCurrentRot <= CAM_MAX_DOWN) {
-// camCurrentRot = CAM_MAX_DOWN;
-// cam.angular.y = camCurrentRot;
-// }
-
-// pub[CAMERA].publish(cam);
-//
-// ENDCAM:
-// pub[VELOCITY].publish(vel);
+	pub[VELOCITY].publish(vel);
 }
 
 void ManualControl::publishCam() {
-	// if(code == 49) {
-	// // move 1 (snapshot)
-	// std_msgs::Empty m;
-	// snapshot.publish(m);
-	// } else if(code == 50) {
-	// // move 2 (start recording)
-	// std_msgs::Bool m;
-	// m.data = true;
-	// record.publish(m);
-	// } else if(code == 51) {
-	// // move 3 (stop recording)
-	// std_msgs::Bool m;
-	// m.data = false;
-	// record.publish(m);
-	// }
+	// camera control
+	geometry_msgs::Twist cam;
+
+	if( input.isKeyDown(SDL_SCANCODE_UP) && !input.isKeyDown(SDL_SCANCODE_DOWN) ) {
+		cam.angular.y = (camCurrentRot += CAM_ROTATE_SPEED);
+		goto CHECK_CAM;
+	} else if( !input.isKeyDown(SDL_SCANCODE_UP) && input.isKeyDown(SDL_SCANCODE_DOWN) ) {
+		cam.angular.y = (camCurrentRot -= CAM_ROTATE_SPEED);
+		goto CHECK_CAM;
+	}
+
+	// skip cam publishing if no keys pressed
+	return;
+
+CHECK_CAM:
+	if(camCurrentRot >= CAM_MAX_UP - CAM_ROTATE_SPEED / 2) {
+		camCurrentRot = CAM_MAX_UP;
+		cam.angular.y = camCurrentRot;
+	} else if(camCurrentRot <= CAM_MAX_DOWN + CAM_ROTATE_SPEED / 2) {
+		camCurrentRot = CAM_MAX_DOWN;
+		cam.angular.y = camCurrentRot;
+	}
+
+	pub[CAMERA].publish(cam);
+}
+
+void ManualControl::doMisc(short type) {
+	if(type == START_RECORDING) {
+		std_msgs::Bool m;
+		m.data = true;
+		pub[RECORD].publish(m);
+	} else if(type == STOP_RECORDING) {
+		std_msgs::Bool m;
+		m.data = false;
+		pub[RECORD].publish(m);
+	} else if(type == TAKE_SNAPSHOT) {
+		std_msgs::Empty m;
+		pub[SNAPSHOT].publish(m);
+	}
 }
 
 void ManualControl::doFlip(short type) {
-	// std_msgs::UInt8 m;
-	// m.data = data;
-	// flip.publish(m);
+	std_msgs::UInt8 m;
+	m.data = type;
+	pub[FLIP].publish(m);
 }
 
 void ManualControl::navHome(bool state) {
-	// std_msgs::Bool m;
-	// m.data = (code == 91 ? true : false);
-	// home.publish(m);
+	std_msgs::Bool m;
+	m.data = state;
+	pub[HOME].publish(m);
 }

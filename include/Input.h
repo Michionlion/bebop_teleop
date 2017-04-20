@@ -7,7 +7,7 @@
 
 class KeyListener {
 public:
-	virtual void key(SDL_KeyboardEvent*);
+	virtual void key(SDL_KeyboardEvent*) = 0;
 };
 
 class Input : Listener {
