@@ -7,12 +7,13 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	roscpp
 	std_msgs
+	sensor_msgs
+	cv_bridge
+	image_transport
 )
 
-#find_package(SDL REQUIRED)
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
-#pkg_check_modules(SDL204 sdl2>=2.0.4)
 
 
 catkin_package(
@@ -24,8 +25,12 @@ catkin_package(
 include_directories(include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable( bebop_teleop src/Events.cpp src/Input.cpp src/Window.cpp src/ManualControl.cpp src/main.cpp)
-
+add_executable( webcam src/WebcamPublisher.cpp)
 target_link_libraries( bebop_teleop
 	${SDL2_LIBRARIES}
+	${catkin_LIBRARIES}
+)
+
+target_link_libraries( webcam
 	${catkin_LIBRARIES}
 )

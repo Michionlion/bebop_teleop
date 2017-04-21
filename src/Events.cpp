@@ -12,9 +12,10 @@ void eventPoll() {
 }
 
 void registerEventListener(Listener* lis) {
-	ROS_INFO("REGISTERED");
+	// ROS_INFO("REGISTERED");
 	eventListeners.push_back(lis);
-	ROS_INFO( "SIZE: %ld", eventListeners.size() );
+
+	// ROS_INFO( "SIZE: %ld", eventListeners.size() );
 }
 
 bool unregisterEventListener(Listener* lis) {
