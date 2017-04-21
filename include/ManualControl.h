@@ -32,7 +32,8 @@ private:
 	ros::Publisher pub[9];
 	double speed = 0.7;
 	double rotSpeed = 0.7;
-	double camCurrentRot;
+	double camX;
+	double camY;
 };
 
 #endif

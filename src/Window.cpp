@@ -58,7 +58,7 @@ END:
 SDL_Rect r = {0, 0, VIDEO_WIDTH, VIDEO_HEIGHT};
 void Window::update() {
 	// do update
-	if( !ready() ) return;
+	if( !ok() ) return;
 
 	if(video_dirty) {
 		// center image in pane
@@ -75,7 +75,7 @@ void Window::update() {
 	// ROS_INFO("RENDER PRESENT");
 }
 
-bool Window::ready() {
+bool Window::ok() {
 	return alive;
 }
 

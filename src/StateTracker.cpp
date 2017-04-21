@@ -1,102 +1,92 @@
 #include "StateTracker.h"
 #include <bebop_msgs/CommonCommonStateBatteryStateChanged.h>
 #include <bebop_msgs/CommonCommonStateWifiSignalChanged.h>
+#include <cmath>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 
-// declare callbacks
-void updateBattery(const bebop_msgs::CommonCommonStateBatteryStateChangedConstPtr& msg);
-void updateWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedConstPtr& msg);
-void updateOdom(const nav_msgs::OdometryConstPtr& msg);
-void updatePos(const sensor_msgs::NavSatFixConstPtr& msg);
-
 StateTracker stats;
 
-StateTracker::StateTracker() {}
+StateTracker::StateTracker() {
+	// ensure we start off with no fix
+	pos.status.status = -1;
+}
 
-StateTracker::~StateTracker() {}
+StateTracker::~StateTracker() {
+	destroy();
+}
+
+void StateTracker::destroy() {
+	for(int i = 0; i < 4; i++) sub[i].shutdown();
+}
 
 void StateTracker::subscribe(ros::NodeHandle& nh) {
-	nh.subscribe("/bebop/states/common/CommonState/BatteryStateChanged", 1, updateBattery);
-	nh.subscribe("/bebop/states/common/CommonState/WifiSignalChanged", 1, updateWifi);
-	nh.subscribe("/bebop/odom", 1, updateOdom);
-	nh.subscribe("/bebop/fix", 1, updatePos);
+	sub[0] = nh.subscribe("bebop/states/common/CommonState/BatteryStateChanged", 100, &StateTracker::setBattery, this);
+	sub[1] = nh.subscribe("bebop/states/common/CommonState/WifiSignalChanged", 100, &StateTracker::setWifi, this);
+	sub[2] = nh.subscribe("bebop/odom", 100, &StateTracker::setOdom, this);
+	sub[3] = nh.subscribe("bebop/fix", 100, &StateTracker::setPos, this);
+
+	// ROS_INFO("SUBSCRIBED");
 }
 
 short StateTracker::getBattery() {
-	if(bat != NULL) return bat->percent;
-	else return -1;
+	return bat;
 }
 
 short StateTracker::getWifiStrength() {
-	if(wifi != NULL) return wifi->rssi;
-	else return -10000;
+	return wifi;
 }
 
 double StateTracker::getXVelocity() {
-	if(odom != NULL) return odom->twist.twist.linear.x;
-	else return 0;
+	return odom.linear.x;
 }
 
 double StateTracker::getYVelocity() {
-	if(odom != NULL) return odom->twist.twist.linear.y;
-	else return 0;
+	return odom.linear.y;
 }
 
 double StateTracker::getZVelocity() {
-	if(odom != NULL) return odom->twist.twist.linear.z;
-	else return 0;
+	return odom.linear.z;
 }
 
 bool StateTracker::hasFix() {
-	if(pos != NULL) return pos->status.status != -1;
-	else return false;
+	return pos.status.status != -1;
 }
 
 double StateTracker::getLatitude() {
-	if( hasFix() ) return pos->latitude;
-	else return 0;
+	if( hasFix() ) return pos.latitude;
+	else return nan("No Fix");
 }
 
 double StateTracker::getLongitude() {
-	if( hasFix() ) return pos->longitude;
-	else return 0;
+	if( hasFix() ) return pos.longitude;
+	else return nan("No Fix");
 }
 
 double StateTracker::getAltitude() {
-	if( hasFix() ) return pos->altitude;
-	else return 0;
+	if( hasFix() ) return pos.altitude;
+	else return nan("No Fix");
 }
 
 void StateTracker::setBattery(const bebop_msgs::CommonCommonStateBatteryStateChangedConstPtr& battery) {
-	bat = battery;
+	bat = battery->percent;
+
+	// ROS_INFO("GOT BATT, %d", bat);
 }
 
 void StateTracker::setWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedConstPtr& wi) {
-	wifi = wi;
+	wifi = wi->rssi;
+
+	// ROS_INFO("GOT WIFI, %d", wifi);
 }
 
 void StateTracker::setOdom(const nav_msgs::OdometryConstPtr& od) {
-	odom = od;
+	odom = od->twist.twist;
 }
 
 void StateTracker::setPos(const sensor_msgs::NavSatFixConstPtr& po) {
-	pos = po;
-}
+	pos = *po;
 
-void updateBattery(const bebop_msgs::CommonCommonStateBatteryStateChangedConstPtr& msg) {
-	stats.setBattery(msg);
-}
-
-void updateWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedConstPtr& msg) {
-	stats.setWifi(msg);
-}
-
-void updateOdom(const nav_msgs::OdometryConstPtr& msg) {
-	stats.setOdom(msg);
-}
-
-void updatePos(const sensor_msgs::NavSatFixConstPtr& msg) {
-	stats.setPos(msg);
+	// ROS_INFO("GOT NAVFIX");
 }

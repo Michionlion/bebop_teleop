@@ -13,7 +13,7 @@ public:
 	void event(SDL_Event*);
 	void update(void);
 	void destroy(void);
-	bool ready(void);
+	bool ok(void);
 
 	void updateVideoTexture(const sensor_msgs::ImageConstPtr&);
 

@@ -11,6 +11,7 @@ class StateTracker {
 public:
 	StateTracker(void);
 	~StateTracker(void);
+	void destroy(void);
 
 	short getBattery(void);
 	short getWifiStrength(void);
@@ -32,10 +33,11 @@ public:
 	void subscribe(ros::NodeHandle&);
 
 private:
-	bebop_msgs::CommonCommonStateBatteryStateChangedConstPtr bat;
-	bebop_msgs::CommonCommonStateWifiSignalChangedConstPtr wifi;
-	nav_msgs::OdometryConstPtr odom;
-	sensor_msgs::NavSatFixConstPtr pos;
+	short bat;
+	short wifi;
+	geometry_msgs::Twist odom;
+	sensor_msgs::NavSatFix pos;
+	ros::Subscriber sub[4];
 };
 
 extern StateTracker stats;

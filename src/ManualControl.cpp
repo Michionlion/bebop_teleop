@@ -6,11 +6,13 @@
 #include <std_msgs/Empty.h>
 #include <std_msgs/UInt8.h>
 
-#define CAM_ROTATE_SPEED 2.5
-#define CAM_MAX_UP 20.0
+#define CAM_ROTATE_SPEED 2.0
+#define CAM_MAX_UP 18.0
 #define CAM_MAX_DOWN -70.0
-#define SPEED_INCREMENT 0.05
-#define ROTATE_INCREMENT 0.125
+#define CAM_MAX_RIGHT 35.0
+#define CAM_MAX_LEFT -35.0
+#define SPEED_INCREMENT 0.0125
+#define ROTATE_INCREMENT 0.00625
 
 #define START_RECORDING 1
 #define STOP_RECORDING 2
@@ -140,14 +142,14 @@ END_CHECK_ROT_SPEED:
 	if( input.isKeyDown(SDL_SCANCODE_W) && !input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = speed;
 	else if( !input.isKeyDown(SDL_SCANCODE_W) && input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_D) && !input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = speed;
-	else if( !input.isKeyDown(SDL_SCANCODE_D) && input.isKeyDown(SDL_SCANCODE_A) ) vel.linear.y = -speed;
+	if( input.isKeyDown(SDL_SCANCODE_A) && !input.isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = speed;
+	else if( !input.isKeyDown(SDL_SCANCODE_A) && input.isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = -speed;
 
 	if( input.isKeyDown(SDL_SCANCODE_SPACE) && !input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = speed;
 	else if( !input.isKeyDown(SDL_SCANCODE_SPACE) && input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_LEFT) && !input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = rotSpeed;
-	else if( !input.isKeyDown(SDL_SCANCODE_LEFT) && input.isKeyDown(SDL_SCANCODE_RIGHT) ) vel.angular.z = -rotSpeed;
+	if( input.isKeyDown(SDL_SCANCODE_Q) && !input.isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = rotSpeed;
+	else if( !input.isKeyDown(SDL_SCANCODE_Q) && input.isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = -rotSpeed;
 
 	pub[VELOCITY].publish(vel);
 }
@@ -156,26 +158,19 @@ void ManualControl::publishCam() {
 	// camera control
 	geometry_msgs::Twist cam;
 
-	if( input.isKeyDown(SDL_SCANCODE_UP) && !input.isKeyDown(SDL_SCANCODE_DOWN) ) {
-		cam.angular.y = (camCurrentRot += CAM_ROTATE_SPEED);
-		goto CHECK_CAM;
-	} else if( !input.isKeyDown(SDL_SCANCODE_UP) && input.isKeyDown(SDL_SCANCODE_DOWN) ) {
-		cam.angular.y = (camCurrentRot -= CAM_ROTATE_SPEED);
-		goto CHECK_CAM;
-	}
+	if( input.isKeyDown(SDL_SCANCODE_UP) && !input.isKeyDown(SDL_SCANCODE_DOWN) ) camY += CAM_ROTATE_SPEED;
+	else if( !input.isKeyDown(SDL_SCANCODE_UP) && input.isKeyDown(SDL_SCANCODE_DOWN) ) camY -= CAM_ROTATE_SPEED;
 
-	// skip cam publishing if no keys pressed
-	return;
+	if( input.isKeyDown(SDL_SCANCODE_RIGHT) && !input.isKeyDown(SDL_SCANCODE_LEFT) ) camX += CAM_ROTATE_SPEED;
+	else if( !input.isKeyDown(SDL_SCANCODE_RIGHT) && input.isKeyDown(SDL_SCANCODE_LEFT) ) camX -= CAM_ROTATE_SPEED;
 
-CHECK_CAM:
-	if(camCurrentRot >= CAM_MAX_UP - CAM_ROTATE_SPEED / 2) {
-		camCurrentRot = CAM_MAX_UP;
-		cam.angular.y = camCurrentRot;
-	} else if(camCurrentRot <= CAM_MAX_DOWN + CAM_ROTATE_SPEED / 2) {
-		camCurrentRot = CAM_MAX_DOWN;
-		cam.angular.y = camCurrentRot;
-	}
+	if(camY >= CAM_MAX_UP - CAM_ROTATE_SPEED / 2) camY = CAM_MAX_UP;
+	else if(camY <= CAM_MAX_DOWN + CAM_ROTATE_SPEED / 2) camY = CAM_MAX_DOWN;
+	if(camX >= CAM_MAX_RIGHT - CAM_ROTATE_SPEED / 2) camX = CAM_MAX_RIGHT;
+	else if(camX <= CAM_MAX_LEFT + CAM_ROTATE_SPEED / 2) camX = CAM_MAX_LEFT;
 
+	cam.angular.z = camX;
+	cam.angular.y = camY;
 	pub[CAMERA].publish(cam);
 }
 
