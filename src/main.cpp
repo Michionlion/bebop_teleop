@@ -1,4 +1,5 @@
 #include "ManualControl.h"
+#include "StateTracker.h"
 #include "Window.h"
 #include <geometry_msgs/Twist.h>
 #include <image_transport/image_transport.h>
@@ -31,6 +32,7 @@ int main(int argc, char** argv) {
 	image_transport::TransportHints hints("compressed", ros::TransportHints(), local_nh);
 	image_transport::Subscriber sub = it.subscribe("bebop/image_raw", 1, bebopImage, hints);
 
+	stats.subscribe(nh);
 
 	ros::Rate r(60);
 
