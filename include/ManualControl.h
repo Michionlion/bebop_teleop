@@ -15,8 +15,8 @@
 
 class ManualControl : public KeyListener {
 public:
-	ManualControl();
-	~ManualControl();
+	ManualControl(void);
+	~ManualControl(void);
 	void toggle(void);
 	bool isEnabled(void);
 	void publishVel(void);
@@ -24,7 +24,7 @@ public:
 	void doMisc(short);
 	void doFlip(short);
 	void navHome(bool);
-	void setPub(int, ros::Publisher);
+	void setPub(int, ros::Publisher&);
 	void key(SDL_KeyboardEvent*);
 
 private:

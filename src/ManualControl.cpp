@@ -1,10 +1,10 @@
 #include "Input.h"
 #include "ManualControl.h"
-#include "geometry_msgs/Twist.h"
-#include "ros/ros.h"
-#include "std_msgs/Bool.h"
-#include "std_msgs/Empty.h"
-#include "std_msgs/UInt8.h"
+#include <geometry_msgs/Twist.h>
+#include <ros/ros.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
+#include <std_msgs/UInt8.h>
 
 #define CAM_ROTATE_SPEED 2.5
 #define CAM_MAX_UP 20.0
@@ -81,7 +81,7 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 
 }
 
-void ManualControl::setPub(int index, ros::Publisher publisher) {
+void ManualControl::setPub(int index, ros::Publisher& publisher) {
 	pub[index] = publisher;
 }
 
