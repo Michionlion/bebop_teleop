@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 
 	cv::Mat input;
 	cv::Mat output;
-	cv::Size size(640, 480);
+	cv::Size size(640, 368);
 	sensor_msgs::ImagePtr msg;
 
 	ros::Rate r(10);
