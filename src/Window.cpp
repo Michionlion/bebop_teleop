@@ -1,6 +1,9 @@
 #include "Window.h"
 #include <ros/ros.h>
 
+#define VIDEO_WIDTH 640
+#define VIDEO_HEIGHT 368
+
 Window window;
 
 Window::Window(bool& err) {
@@ -33,7 +36,7 @@ void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
 	int texIndex;
 	int iIndex;
 	int iCol;
-	for(int row = 0; row < 480; row++) {
+	for(int row = 0; row < VIDEO_HEIGHT; row++) {
 		iCol = 0;
 		for(int col = 0; col + 3 < texPitch; col += 4) {
 			if(iCol + 2 >= pitch) continue;
@@ -52,18 +55,19 @@ END:
 	SDL_UnlockTexture(video);
 }
 
-// SDL_Rect r = {0, 0, 640, 480};
+SDL_Rect r = {0, 0, VIDEO_WIDTH, VIDEO_HEIGHT};
 void Window::update() {
 	// do update
 	if( !ready() ) return;
 
 	if(video_dirty) {
 		// center image in pane
-		// SDL_GetWindowSize(win, &r.x, &r.y);
-		// r.x = r.x / 2 - 320;
-		// r.y = r.y / 2 - 240;
-		// SDL_RenderCopy(ren, video, NULL, &r);
-		SDL_RenderCopy(ren, video, NULL, NULL);
+		SDL_GetWindowSize(win, &r.x, NULL);
+		r.x = (r.x / 2) - (VIDEO_WIDTH / 2);
+
+		SDL_RenderCopy(ren, video, NULL, &r);
+
+		// SDL_RenderCopy(ren, video, NULL, NULL);
 		SDL_RenderPresent(ren);	// will want to move this out of if statement if anything else is being drawn/updated
 		video_dirty = false;
 	}
@@ -90,14 +94,14 @@ bool Window::init() {
 	}
 	alive = true;
 
-	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE, &win, &ren);
+	SDL_CreateWindowAndRenderer(VIDEO_WIDTH + 200, VIDEO_HEIGHT + 80, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE, &win, &ren);
 	if(win == NULL || ren == NULL) {
 		ROS_ERROR( "SDL CREATE WINDOW FAIL: %s\n", SDL_GetError() );
 		return true;
 	}
 
 
-	video = SDL_CreateTexture(ren, SDL_PIXELFORMAT_BGR888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+	video = SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, VIDEO_HEIGHT);
 	if(video == NULL) {
 		ROS_ERROR( "SDL CREATE TEXTURE FAIL: %s\n", SDL_GetError() );
 		return true;
