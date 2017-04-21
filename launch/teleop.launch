@@ -1,3 +1,4 @@
 <launch>
+  <include file="$(find bebop_driver)/launch/bebop_node.launch"/>
   <node name="bebop_teleop" pkg="bebop_teleop" type="bebop_teleop" required="true" output="screen"/>
 </launch>
