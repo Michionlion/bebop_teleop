@@ -18,15 +18,8 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 	ros::NodeHandle local_nh("~");
 	ManualControl control;
-	control.setPub( VELOCITY, nh.advertise<geometry_msgs::Twist>("bebop/cmd_vel", 1) );
-	control.setPub( TAKEOFF, nh.advertise<std_msgs::Empty>("bebop/takeoff", 1) );
-	control.setPub( LAND, nh.advertise<std_msgs::Empty>("bebop/land", 1) );
-	control.setPub( RESET, nh.advertise<std_msgs::Empty>("bebop/reset", 1) );
-	control.setPub( CAMERA, nh.advertise<geometry_msgs::Twist>("bebop/camera_control", 1) );
-	control.setPub( SNAPSHOT, nh.advertise<std_msgs::Empty>("bebop/snapshot", 1) );
-	control.setPub( RECORD, nh.advertise<std_msgs::Bool>("bebop/record", 1) );
-	control.setPub( FLIP, nh.advertise<std_msgs::UInt8>("bebop/flip", 1) );
-	control.setPub( HOME, nh.advertise<std_msgs::Bool>("bebop/autoflight/navigate_home", 1) );
+
+	control.advertise(nh);
 
 	image_transport::ImageTransport it(nh);
 	image_transport::TransportHints hints("compressed", ros::TransportHints(), local_nh);
@@ -50,6 +43,7 @@ int main(int argc, char** argv) {
 		ros::spinOnce();
 		eventPoll();
 		window.update();
+		ROS_INFO("STATS: ");
 		control.publishVel();
 		control.publishCam();
 		r.sleep();

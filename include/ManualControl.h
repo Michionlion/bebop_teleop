@@ -24,7 +24,7 @@ public:
 	void doMisc(short);
 	void doFlip(short);
 	void navHome(bool);
-	void setPub(int, ros::Publisher&);
+	void advertise(ros::NodeHandle&);
 	void key(SDL_KeyboardEvent*);
 
 private:

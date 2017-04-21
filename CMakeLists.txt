@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	std_msgs
 	sensor_msgs
+	bebop_msgs
 	cv_bridge
 	image_transport
 )
@@ -15,11 +16,18 @@ find_package(catkin REQUIRED COMPONENTS
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
 
+#generate_messages(
+#  DEPENDENCIES
+#  geometry_msgs
+#  std_msgs
+#  sensor_msgs
+#  bebop_msgs
+#)
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES bebop_teleop
-	CATKIN_DEPENDS geometry_msgs roscpp std_msgs
+	CATKIN_DEPENDS geometry_msgs roscpp std_msgs sensor_msgs bebop_msgs cv_bridge image_transport
 	DEPENDS ${SDL2_LIBRARY}
 )
 include_directories(include ${SDL2_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
