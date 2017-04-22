@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
 		eventPoll();
 		window.update();
 
+
 		// ROS_INFO( "STATS: Batt: %d%% Wifi: %d GPS: %s\nGPS: (Latitude: %0.6f Longitude: %0.6f)\nVELX: %0.3f VELY: %0.3f VELZ: %0.3f", stats.getBattery(), stats.getWifiStrength(), stats.hasFix() ? "Has Fix" : "No Fix", stats.getLatitude(), stats.getLongitude(), stats.getXVelocity(), stats.getYVelocity(), stats.getZVelocity() );
 
 		control.publishVel();
