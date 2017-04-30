@@ -1,4 +1,5 @@
 #include "Window.h"
+#include <SDL2/SDL_ttf.h>
 #include <ros/ros.h>
 
 #define VIDEO_WIDTH 640
@@ -19,7 +20,13 @@ Window::~Window() {
 }
 
 void Window::event(SDL_Event* event) {
-	if(event->type == SDL_QUIT) destroy();
+	if(event->type == SDL_QUIT) {destroy();} else if(event->type == SDL_MOUSEBUTTONDOWN) {
+		auto beg = components.begin();
+		auto end = components.end();
+		for(; beg != end; beg++) {
+			if( beg->inside(event->button.x, event->button.y) ) beg->callCB();
+		}
+	}
 }
 
 void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
@@ -72,6 +79,12 @@ void Window::update() {
 		video_dirty = false;
 	}
 
+	auto beg = components.begin();
+	auto end = components.end();
+	for(; beg != end; beg++) {
+		beg->render(ren);
+	}
+
 	// ROS_INFO("RENDER PRESENT");
 }
 
@@ -84,6 +97,7 @@ void Window::destroy() {
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
+	TTF_Quit();
 }
 
 bool Window::init() {
@@ -92,7 +106,13 @@ bool Window::init() {
 		ROS_ERROR( "SDL INIT FAIL: %s\n", SDL_GetError() );
 		return true;
 	}
+
 	alive = true;
+	if(TTF_Init() < 0) {
+		ROS_ERROR( "TTF INIT FAIL: %s\n", TTF_GetError() );
+		return true;
+	}
+
 
 	SDL_CreateWindowAndRenderer(VIDEO_WIDTH + 200, VIDEO_HEIGHT + 80, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE, &win, &ren);
 	if(win == NULL || ren == NULL) {
