@@ -1,10 +1,12 @@
 #include "Window.h"
 #include <SDL2/SDL_ttf.h>
+#include <iomanip>
 #include <ros/ros.h>
+#include <sstream>
 
 #define VIDEO_WIDTH 640
 #define VIDEO_HEIGHT 368
-#define WINDOW_WIDTH 750
+#define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 400
 
 Window window;
@@ -20,6 +22,11 @@ GUIC* velx;
 GUIC* vely;
 GUIC* velz;
 
+std::string format(double num, int prec) {
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(prec) << num;
+	return stream.str();
+}
 
 Window::Window(bool& err) {
 	err = init();
@@ -98,6 +105,12 @@ void Window::update() {
 
 	wifi->render(ren);
 	batt->render(ren);
+	lat->render(ren);
+	lon->render(ren);
+	alt->render(ren);
+	velx->render(ren);
+	vely->render(ren);
+	velz->render(ren);
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE
 	SDL_RenderPresent(ren);
@@ -112,7 +125,7 @@ void Window::destroy() {
 
 
 // seg fault in closefont... no idea why
-	// TTF_CloseFont(font);
+	TTF_CloseFont(font);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 
@@ -125,23 +138,30 @@ void Window::makeGUI() {
 	// text->setText("test text", ren);
 
 
-	batt = new GUIC(font, 4, 4, 100, 28);
-
+	batt = new GUIC(font, 4, 6, -1, 24);
 	batt->setText("BAT: 90%", ren);
 
-	wifi = new GUIC(font, 200, 4, 50, 28);
+	wifi = new GUIC(font, batt->getBounds()->w + 8, 6, -1, 24);
+	wifi->setText("WIFI: [+++]", ren);
 
-	wifi->setText("WIFI: 10%", ren);
+	lat = new GUIC(font, VIDEO_WIDTH + 4, 4, -1, 24);
+	lat->setText("LAT: " + format(0.12345678, 5) + "\'", ren);
+
+	lon = new GUIC(font, VIDEO_WIDTH + 4, 4 + 24 + 4, -1, 24);
+	lon->setText("LON: " + format(0.12345678, 5) + "\'", ren);
+
+	alt = new GUIC(font, VIDEO_WIDTH + 4, 4 + 48 + 8, -1, 24);
+	alt->setText("ALT: " + format(0.12345678, 4) + "m", ren);
 
 
-	//
-	// lat;
-	// lon;
-	// alt;
-	//
-	// velx;
-	// vely;
-	// velz;
+	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
+	velx->setText("XVEL: 0m/s", ren);
+
+	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
+	vely->setText("YVEL: 0m/s", ren);
+
+	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
+	velz->setText("ZVEL: 0m/s", ren);
 }
 
 bool Window::init() {
@@ -157,7 +177,7 @@ bool Window::init() {
 		return true;
 	}
 
-	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/sqr.ttf", 28);
+	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/sqr.ttf", 24);
 	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
 	// return true;
