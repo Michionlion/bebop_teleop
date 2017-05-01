@@ -2,6 +2,7 @@
 #include "Window.h"
 #include <SDL2/SDL_ttf.h>
 #include <iomanip>
+#include <math.h>
 #include <ros/ros.h>
 #include <sstream>
 
@@ -13,7 +14,6 @@
 Window window;
 
 GUIC* wifi;
-const char* wifiT = "Wifi: ";
 GUIC* batt;
 
 GUIC* lat;
@@ -25,6 +25,8 @@ GUIC* vely;
 GUIC* velz;
 
 std::string format(double num, int prec) {
+	if( isnanf(num) ) return "No Fix";
+
 	std::stringstream stream;
 	stream << std::fixed << std::setprecision(prec) << num;
 	return stream.str();
@@ -106,21 +108,40 @@ void Window::update() {
 	}
 
 	// update
-	std::string t = ( abs( stats.getWifiStrength() ) > 40 ? "+" : (abs( stats.getWifiStrength() ) > 15 ? "++" : "+++") );
-	wifi->setText(wifiT + t, ren);
+	std::string t = abs( stats.getWifiStrength() ) > 75 ? "+   " : ( abs( stats.getWifiStrength() ) > 50 ? "++  " : (abs( stats.getWifiStrength() ) > 20 ? "+++ " : "++++") );
+	wifi->setText("Wifi: [" + t + "]", ren);
 	wifi->render(ren);
 
 	t = "BAT: ";
 	batt->setText(t + format(stats.getBattery(), 2) + "%", ren);
 	batt->render(ren);
+
+	t = "LAT: ";
+	lat->setText(t + format(stats.getLatitude(), 5) + "\u00B0", ren);
 	lat->render(ren);
+
+	t = "LON: ";
+	lon->setText(t + format(stats.getLongitude(), 5) + "\u00B0", ren);
 	lon->render(ren);
+
+	t = "ALT: ";
+	alt->setText(t + format(stats.getAltitude(), 2) + "m", ren);
 	alt->render(ren);
+
+
+	t = "XVEL: ";
+	velx->setText(t + format(stats.getXVelocity(), 3) + "m/s", ren);
 	velx->render(ren);
+
+	t = "YVEL: ";
+	vely->setText(t + format(stats.getYVelocity(), 3) + "m/s", ren);
 	vely->render(ren);
+
+	t = "ZVEL: ";
+	velz->setText(t + format(stats.getZVelocity(), 3) + "m/s", ren);
 	velz->render(ren);
 
-	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE
+	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
 	SDL_RenderPresent(ren);
 }
 
