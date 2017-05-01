@@ -5,7 +5,7 @@
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
 
-Patroller patroller;
+Patroller* patroller;
 
 Patroller::Patroller() {}
 
@@ -17,28 +17,28 @@ void Patroller::destroy() {}
 
 void Patroller::checkState() {
 	// switch statement in case we need to check signage
-	ROS_INFO( "OFF: %f %f", fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x), fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) );
+	ROS_INFO( "OFF: %f %f", fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x), fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) );
 	switch(current_state.direction) {
 	case FORWARD:
-		if(fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
+		if(fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
 		break;
 
 	case RIGHT:
-		if(fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
+		if(fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
 		break;
 
 	case BACKWARD:
-		if(fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
+		if(fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
 		break;
 
 	case LEFT:
-		if(fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
+		if(fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
 		break;
 	}
 }
 
 void Patroller::nextState() {
-	current_state.start = stats.getOdom()->pose.pose.position;
+	current_state.start = stats->getOdom()->pose.pose.position;
 
 	if(current_state.direction == RIGHT || current_state.direction == LEFT) current_state.distance = current_state.distance + spacing;
 	else current_state.distance = current_state.distance;
@@ -59,22 +59,22 @@ void Patroller::patrol() {
 	switch(current_state.direction) {
 	case FORWARD:
 		vel.linear.x = speed;
-		control.send(&vel);
+		control->send(&vel);
 		return;
 
 	case RIGHT:
 		vel.linear.y = -speed;
-		control.send(&vel);
+		control->send(&vel);
 		return;
 
 	case BACKWARD:
 		vel.linear.x = -speed;
-		control.send(&vel);
+		control->send(&vel);
 		return;
 
 	case LEFT:
 		vel.linear.y = speed;
-		control.send(&vel);
+		control->send(&vel);
 		return;
 	}
 }
@@ -82,12 +82,12 @@ void Patroller::patrol() {
 void Patroller::stop() {
 	ROS_INFO("STOPPING PATROL");
 	patrolling = false;
-	if( !control.isEnabled() ) control.toggle();
+	if( !control->isEnabled() ) control->toggle();
 }
 
 void Patroller::start(double altitude, double spacing, double speed) {
 	ROS_INFO("STARTING PATROL");
-	if( control.isEnabled() ) control.toggle();
+	if( control->isEnabled() ) control->toggle();
 	radius = (int) ceil(altitude);
 	this->spacing = spacing;
 	this->speed = speed;
@@ -95,5 +95,5 @@ void Patroller::start(double altitude, double spacing, double speed) {
 
 	current_state.distance = spacing;
 	current_state.direction = FORWARD;
-	current_state.start = stats.getOdom()->pose.pose.position;
+	current_state.start = stats->getOdom()->pose.pose.position;
 }

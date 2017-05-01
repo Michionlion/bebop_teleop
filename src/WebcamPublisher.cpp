@@ -33,4 +33,7 @@ int main(int argc, char** argv) {
 		ros::spinOnce();
 		r.sleep();
 	}
+
+	pub.shutdown();
+	ros::shutdown();
 }

@@ -21,15 +21,18 @@
 #define DO_TAKEOFF 5
 #define DO_RESET 6
 
-ManualControl control;
+ManualControl* control;
 
 ManualControl::ManualControl() {
-	input.registerKeyListener(this);
-	enabled = true;
+	input->registerKeyListener(this);
 }
 
 ManualControl::~ManualControl() {
-	input.unregisterKeyListener(this);
+	input->unregisterKeyListener(this);
+	for(auto & el : pub) {
+		el.shutdown();
+	}
+	enabled = false;
 }
 
 void ManualControl::key(SDL_KeyboardEvent* event) {
@@ -80,11 +83,17 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			break;
 
 		case SDL_SCANCODE_7:
-			patroller.start(2, 0.25, 0.08);
+			patroller->start(2, 0.25, 0.08);
 			break;
 
 		case SDL_SCANCODE_8:
-			patroller.stop();
+			patroller->stop();
+			break;
+
+		case SDL_SCANCODE_ESCAPE:
+			SDL_Event event;
+			event.type = SDL_QUIT;
+			publishEvent(&event);
 			break;
 
 		default:
@@ -124,10 +133,10 @@ bool ManualControl::isEnabled() {
 void ManualControl::publishVel() {
 	if(!enabled) return;
 
-	if( input.isKeyDown(SDL_SCANCODE_1) && !input.isKeyDown(SDL_SCANCODE_2) ) {
+	if( input->isKeyDown(SDL_SCANCODE_1) && !input->isKeyDown(SDL_SCANCODE_2) ) {
 		speed -= SPEED_INCREMENT;
 		goto CHECK_SPEED;
-	} else if( !input.isKeyDown(SDL_SCANCODE_1) && input.isKeyDown(SDL_SCANCODE_2) ) {
+	} else if( !input->isKeyDown(SDL_SCANCODE_1) && input->isKeyDown(SDL_SCANCODE_2) ) {
 		speed += SPEED_INCREMENT;
 		goto CHECK_SPEED;
 	}
@@ -139,10 +148,10 @@ CHECK_SPEED:
 	ROS_INFO("Speed: %f", speed);
 
 END_CHECK_SPEED:
-	if( input.isKeyDown(SDL_SCANCODE_3) && !input.isKeyDown(SDL_SCANCODE_4) ) {
+	if( input->isKeyDown(SDL_SCANCODE_3) && !input->isKeyDown(SDL_SCANCODE_4) ) {
 		rotSpeed -= ROTATE_INCREMENT;
 		goto CHECK_ROT_SPEED;
-	} else if( !input.isKeyDown(SDL_SCANCODE_3) && input.isKeyDown(SDL_SCANCODE_4) ) {
+	} else if( !input->isKeyDown(SDL_SCANCODE_3) && input->isKeyDown(SDL_SCANCODE_4) ) {
 		rotSpeed += ROTATE_INCREMENT;
 		goto CHECK_ROT_SPEED;
 	}
@@ -156,17 +165,17 @@ CHECK_ROT_SPEED:
 END_CHECK_ROT_SPEED:
 	geometry_msgs::Twist vel;
 
-	if( input.isKeyDown(SDL_SCANCODE_W) && !input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = speed;
-	else if( !input.isKeyDown(SDL_SCANCODE_W) && input.isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_W) && !input->isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_W) && input->isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_A) && !input.isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = speed;
-	else if( !input.isKeyDown(SDL_SCANCODE_A) && input.isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_A) && !input->isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_A) && input->isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_SPACE) && !input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = speed;
-	else if( !input.isKeyDown(SDL_SCANCODE_SPACE) && input.isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_SPACE) && !input->isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_SPACE) && input->isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = -speed;
 
-	if( input.isKeyDown(SDL_SCANCODE_Q) && !input.isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = rotSpeed;
-	else if( !input.isKeyDown(SDL_SCANCODE_Q) && input.isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = -rotSpeed;
+	if( input->isKeyDown(SDL_SCANCODE_Q) && !input->isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = rotSpeed;
+	else if( !input->isKeyDown(SDL_SCANCODE_Q) && input->isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = -rotSpeed;
 
 	pub[VELOCITY].publish(vel);
 }
@@ -175,11 +184,11 @@ void ManualControl::publishCam() {
 	// camera control
 	geometry_msgs::Twist cam;
 
-	if( input.isKeyDown(SDL_SCANCODE_UP) && !input.isKeyDown(SDL_SCANCODE_DOWN) ) camY += CAM_ROTATE_SPEED;
-	else if( !input.isKeyDown(SDL_SCANCODE_UP) && input.isKeyDown(SDL_SCANCODE_DOWN) ) camY -= CAM_ROTATE_SPEED;
+	if( input->isKeyDown(SDL_SCANCODE_UP) && !input->isKeyDown(SDL_SCANCODE_DOWN) ) camY += CAM_ROTATE_SPEED;
+	else if( !input->isKeyDown(SDL_SCANCODE_UP) && input->isKeyDown(SDL_SCANCODE_DOWN) ) camY -= CAM_ROTATE_SPEED;
 
-	if( input.isKeyDown(SDL_SCANCODE_RIGHT) && !input.isKeyDown(SDL_SCANCODE_LEFT) ) camX += CAM_ROTATE_SPEED;
-	else if( !input.isKeyDown(SDL_SCANCODE_RIGHT) && input.isKeyDown(SDL_SCANCODE_LEFT) ) camX -= CAM_ROTATE_SPEED;
+	if( input->isKeyDown(SDL_SCANCODE_RIGHT) && !input->isKeyDown(SDL_SCANCODE_LEFT) ) camX += CAM_ROTATE_SPEED;
+	else if( !input->isKeyDown(SDL_SCANCODE_RIGHT) && input->isKeyDown(SDL_SCANCODE_LEFT) ) camX -= CAM_ROTATE_SPEED;
 
 	if(camY >= CAM_MAX_UP - CAM_ROTATE_SPEED / 2) camY = CAM_MAX_UP;
 	else if(camY <= CAM_MAX_DOWN + CAM_ROTATE_SPEED / 2) camY = CAM_MAX_DOWN;

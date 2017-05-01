@@ -6,7 +6,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 
-StateTracker stats;
+StateTracker* stats;
 
 StateTracker::StateTracker() {
 	// ensure we start off with no fix

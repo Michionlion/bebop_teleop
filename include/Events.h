@@ -13,5 +13,6 @@ extern std::vector<Listener*> eventListeners;
 extern void registerEventListener(Listener*);
 extern bool unregisterEventListener(Listener*);
 extern void eventPoll(void);
+extern void publishEvent(SDL_Event*);
 
 #endif

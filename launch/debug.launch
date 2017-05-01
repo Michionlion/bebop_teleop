@@ -1,0 +1,3 @@
+<launch>
+	<node launch-prefix="valgrind --leak-check=full -v --track-origins=yes" name="bebop_teleop" pkg="bebop_teleop" type="bebop_teleop" required="true" output="screen"/>
+</launch>

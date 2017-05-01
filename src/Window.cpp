@@ -11,7 +11,9 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 400
 
-Window window;
+#define PREC(p) std::fixed << std::setprecision(p)
+
+Window* window;
 
 GUIC* wifi;
 GUIC* batt;
@@ -29,12 +31,16 @@ GUIC* cmdy;
 GUIC* cmdz;
 GUIC* cmdr;
 
-std::string format(double num, int prec) {
-	if( isnanf(num) ) return "No Fix";
+// const char* format(double num, int prec) {
+// std::stringstream stream;
+// if( !isnanf(num) ) stream << std::fixed << std::setprecision(prec) << num;
+// else stream << "No Fix";
+// return stream.str().c_str();
+// }
 
-	std::stringstream stream;
-	stream << std::fixed << std::setprecision(prec) << num;
-	return stream.str();
+void reset(std::stringstream& str) {
+	str.str( std::string() );
+	str.clear();
 }
 
 Window::Window(bool& err) {
@@ -52,7 +58,7 @@ Window::~Window() {
 void Window::event(SDL_Event* event) {
 	if(!alive) return;
 
-	if(event->type == SDL_QUIT) {destroy();} else if(event->type == SDL_MOUSEBUTTONDOWN) {}
+	if(event->type == SDL_QUIT) {alive = false;} else if(event->type == SDL_MOUSEBUTTONDOWN) {}
 }
 
 void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
@@ -113,53 +119,73 @@ void Window::update() {
 	}
 
 	// update
-	std::string t = abs( stats.getWifiStrength() ) > 75 ? "+   " : ( abs( stats.getWifiStrength() ) > 50 ? "++  " : (abs( stats.getWifiStrength() ) > 20 ? "+++ " : "++++") );
-	wifi->setText("Wifi: [" + t + "]", ren);
+
+	std::stringstream str;
+	bool gpsfix = stats->hasFix();
+	str << "Wifi: l" << ( abs( stats->getWifiStrength() ) > 75 ? "+   " : ( abs( stats->getWifiStrength() ) > 50 ? "++  " : (abs( stats->getWifiStrength() ) > 20 ? "+++ " : "++++") ) ) << "l";
+	wifi->setText(str.str(), ren);
 	wifi->render(ren);
 
-	t = "BAT: ";
-	batt->setText(t + format(stats.getBattery(), 2) + "%", ren);
+	reset(str);
+	str << "BAT: " << stats->getBattery() << "%";
+	batt->setText(str.str(), ren);
 	batt->render(ren);
 
-	t = "LAT: ";
-	lat->setText(t + format(stats.getLatitude(), 5) + "*", ren);
+	reset(str);
+	str << "LAT: " << PREC(5);
+	if(gpsfix) str << stats->getLatitude() << "*";
+	else str << "No Fix";
+	lat->setText(str.str(), ren);
 	lat->render(ren);
 
-	t = "LON: ";
-	lon->setText(t + format(stats.getLongitude(), 5) + "*", ren);
+	reset(str);
+	str << "LON: " << PREC(5);
+	if(gpsfix) str << stats->getLongitude() << "*";
+	else str << "No Fix";
+	lon->setText(str.str(), ren);
 	lon->render(ren);
 
-	t = "ALT: ";
-	alt->setText(t + format(stats.getAltitude(), 2) + "m", ren);
+	reset(str);
+	str << "ALT: " << PREC(2);
+	if(gpsfix) str << stats->getAltitude() << " m";
+	else str << "No Fix";
+	alt->setText(str.str(), ren);
 	alt->render(ren);
 
 
-	t = "XVEL: ";
-	velx->setText(t + format(stats.getXVelocity(), 3) + " m/s", ren);
+	reset(str);
+	str << "XVEL: " << PREC(2) << stats->getXVelocity() << " m/s";
+	velx->setText(str.str(), ren);
 	velx->render(ren);
 
-	t = "YVEL: ";
-	vely->setText(t + format(stats.getYVelocity(), 3) + " m/s", ren);
+	reset(str);
+	str << "YVEL: " << PREC(2) << stats->getYVelocity() << " m/s";
+	vely->setText(str.str(), ren);
 	vely->render(ren);
 
-	t = "ZVEL: ";
-	velz->setText(t + format(stats.getZVelocity(), 3) + " m/s", ren);
+	reset(str);
+	str << "ZVEL: " << PREC(2) << stats->getZVelocity() << " m/s";
+	velz->setText(str.str(), ren);
 	velz->render(ren);
 
-	t = "CMDX: ";
-	cmdx->setText(t + format(0, 3) + " m/s", ren);
+	reset(str);
+	str << "CMDX: " << PREC(2) << 0.0 << " m/s";
+	cmdx->setText(str.str(), ren);
 	cmdx->render(ren);
 
-	t = "CMDY: ";
-	cmdy->setText(t + format(0, 3) + " m/s", ren);
+	reset(str);
+	str << "CMDY: " << PREC(2) << 0.0 << " m/s";
+	cmdy->setText(str.str(), ren);
 	cmdy->render(ren);
 
-	t = "CMDZ: ";
-	cmdz->setText(t + format(0, 3) + " m/s", ren);
+	reset(str);
+	str << "CMDZ: " << PREC(2) << 0.0 << " m/s";
+	cmdz->setText(str.str(), ren);
 	cmdz->render(ren);
 
-	t = "CMDR: ";
-	cmdr->setText(t + format(0, 3) + " deg/s", ren);
+	reset(str);
+	str << "CMDR: " << PREC(2) << 0.0 << " d/s";
+	cmdr->setText(str.str(), ren);
 	cmdr->render(ren);
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
@@ -173,9 +199,7 @@ bool Window::ok() {
 void Window::destroy() {
 	alive = false;
 
-
-// seg fault in closefont... no idea why
-	// TTF_CloseFont(font);
+	TTF_CloseFont(font);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 
@@ -184,50 +208,29 @@ void Window::destroy() {
 }
 
 void Window::makeGUI() {
-	// GUIC* text = new GUIC(font, 5, 4, -1, 28);
-	// text->setText("test text", ren);
+	batt = new GUIC(font, 4, 4, -1, 24);
 
-
-	batt = new GUIC(font, 4, 6, -1, 24);
-	batt->setText("BAT: 90%", ren);
-
-	wifi = new GUIC(font, batt->getBounds()->w + 8, 6, -1, 24);
-	wifi->setText("WIFI: [+++]", ren);
+	int i;
+	TTF_SizeText(font, "BAT: 000%", &i, NULL);
+	wifi = new GUIC(font, i + 8, 4, -1, 24);
 
 	lat = new GUIC(font, VIDEO_WIDTH + 4, 4, -1, 24);
-	lat->setText("LAT: " + format(0.12345678, 5) + "\'", ren);
-
 	lon = new GUIC(font, VIDEO_WIDTH + 4, 4 + 24 + 4, -1, 24);
-	lon->setText("LON: " + format(0.12345678, 5) + "\'", ren);
-
 	alt = new GUIC(font, VIDEO_WIDTH + 4, 4 + 48 + 8, -1, 24);
-	alt->setText("ALT: " + format(0.12345678, 4) + "m", ren);
 
 	cmdx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 8, -1, 24);
-	cmdx->setText("CMDX: 0m/s", ren);
-
 	cmdy = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 7, -1, 24);
-	cmdy->setText("CMDY: 0m/s", ren);
-
 	cmdz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 6, -1, 24);
-	cmdz->setText("CMDZ: 0m/s", ren);
-
 	cmdr = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 5, -1, 24);
-	cmdr->setText("CMDR: 0 deg/s", ren);
 
 	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
-	velx->setText("XVEL: 0m/s", ren);
-
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
-	vely->setText("YVEL: 0m/s", ren);
-
 	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
-	velz->setText("ZVEL: 0m/s", ren);
 }
 
 bool Window::init() {
 	alive = false;
-	if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		ROS_ERROR( "SDL INIT FAIL: %s\n", SDL_GetError() );
 		return true;
 	}
@@ -259,6 +262,7 @@ bool Window::init() {
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 	SDL_RenderClear(ren);
 	SDL_RenderPresent(ren);
+
 	makeGUI();
 	return false;
 }

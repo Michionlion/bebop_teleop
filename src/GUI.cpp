@@ -2,23 +2,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <ros/ros.h>
 
-SDL_Color bg() {
-	SDL_Color c;
-	c.r = 0;
-	c.g = 0;
-	c.b = 0;
-	c.a = 255;
-	return c;
-}
-
-SDL_Color fg() {
-	SDL_Color c;
-	c.r = 255;
-	c.g = 255;
-	c.b = 255;
-	c.a = 255;
-	return c;
-}
+SDL_Color fg = {255, 255, 255, 255};
+SDL_Color bg = {  0, 0, 0, 255};
 
 GUIC::GUIC(TTF_Font* f, int x, int y, int width, int height) {
 	font = f;
@@ -39,7 +24,7 @@ void GUIC::destroy() {
 }
 
 void GUIC::setText(std::string str, SDL_Renderer* ren) {
-	SDL_Surface* srf = TTF_RenderText_Shaded( font, str.c_str(), fg(), bg() );
+	SDL_Surface* srf = TTF_RenderText_Shaded(font, str.c_str(), fg, bg);
 	setTexture( SDL_CreateTextureFromSurface(ren, srf) );
 	text = str;
 

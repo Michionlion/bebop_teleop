@@ -27,13 +27,13 @@ private:
 	SDL_Texture* video;
 	sensor_msgs::Image image;
 	TTF_Font* font;
-	bool video_dirty;
-	bool alive;
+	bool video_dirty = false;
+	bool alive = false;
 	bool init(void);
 
 	// Window(const Window&);
 };
 
-extern Window window;
+extern Window* window;
 
 #endif

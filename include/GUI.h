@@ -21,12 +21,12 @@ public:
 	SDL_Rect* getBounds(void);
 
 private:
-	SDL_Rect bounds;
-	SDL_Texture* texture;
-	Callback* callback;
+	SDL_Rect bounds = {0, 0, 0, 0};
+	SDL_Texture* texture = NULL;
+	Callback* callback = NULL;
 	std::string text;
 	TTF_Font* font;
-	bool dirty;
+	bool dirty = false;
 };
 
 #endif

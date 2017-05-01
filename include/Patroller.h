@@ -28,15 +28,15 @@ public:
 
 private:
 	State current_state;
-	int radius;
-	double spacing;
-	double speed;
-	bool patrolling;
+	int radius = 0;
+	double spacing = 0;
+	double speed = 0;
+	bool patrolling = false;
 
 	void checkState(void);
 	void nextState(void);
 };
 
-extern Patroller patroller;
+extern Patroller* patroller;
 
 #endif

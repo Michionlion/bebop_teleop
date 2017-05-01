@@ -20,11 +20,10 @@ public:
 	bool unregisterKeyListener(KeyListener*);
 
 private:
-	// SDL_Surface* window;
 	std::vector<KeyListener*> keyListeners;
 	const Uint8* keysDown;
 };
 
-extern Input input;
+extern Input* input;
 
 #endif

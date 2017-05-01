@@ -1,7 +1,7 @@
 #include "Input.h"
 #include <ros/ros.h>
 
-Input input;
+Input* input;
 
 Input::Input() {
 	registerEventListener(this);
@@ -12,10 +12,9 @@ void Input::event(SDL_Event* event) {
 	switch(event->type) {
 	case SDL_KEYUP:
 	case SDL_KEYDOWN:
-		if(event->key.repeat < 1) {
-			ROS_INFO("KEYEVENT");
+		if(event->key.repeat < 1)
+			// ROS_INFO("KEYEVENT");
 			for(auto & el : keyListeners) el->key(&event->key);
-		}
 		break;
 	}
 }

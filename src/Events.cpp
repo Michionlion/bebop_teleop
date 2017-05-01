@@ -5,6 +5,10 @@ std::vector<Listener*> eventListeners;
 
 // void Listener::event(SDL_Event* e) {}
 
+void publishEvent(SDL_Event* event) {
+	for(auto & el : eventListeners) el->event(event);
+}
+
 void eventPoll() {
 	SDL_Event e;
 	while( SDL_PollEvent(&e) )

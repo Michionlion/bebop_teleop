@@ -34,13 +34,13 @@ public:
 	void subscribe(ros::NodeHandle&);
 
 private:
-	short bat;
-	short wifi;
+	short bat = 95;
+	short wifi = 100;
 	nav_msgs::Odometry odom;
 	sensor_msgs::NavSatFix pos;
 	ros::Subscriber sub[4];
 };
 
-extern StateTracker stats;
+extern StateTracker* stats;
 
 #endif

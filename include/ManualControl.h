@@ -30,14 +30,14 @@ public:
 	void key(SDL_KeyboardEvent*);
 
 private:
-	bool enabled;
+	bool enabled = true;
 	ros::Publisher pub[9];
 	double speed = 0.7;
 	double rotSpeed = 0.7;
-	double camX;
-	double camY;
+	double camX = 0;
+	double camY = 0;
 };
 
-extern ManualControl control;
+extern ManualControl* control;
 
 #endif
