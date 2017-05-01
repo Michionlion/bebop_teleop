@@ -39,15 +39,19 @@ short StateTracker::getWifiStrength() {
 }
 
 double StateTracker::getXVelocity() {
-	return odom.linear.x;
+	return odom.twist.twist.linear.x;
 }
 
 double StateTracker::getYVelocity() {
-	return odom.linear.y;
+	return odom.twist.twist.linear.y;
 }
 
 double StateTracker::getZVelocity() {
-	return odom.linear.z;
+	return odom.twist.twist.linear.z;
+}
+
+nav_msgs::Odometry* StateTracker::getOdom(){
+	return &odom;
 }
 
 bool StateTracker::hasFix() {
@@ -82,7 +86,7 @@ void StateTracker::setWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedC
 }
 
 void StateTracker::setOdom(const nav_msgs::OdometryConstPtr& od) {
-	odom = od->twist.twist;
+	odom = od;
 }
 
 void StateTracker::setPos(const sensor_msgs::NavSatFixConstPtr& po) {

@@ -24,6 +24,7 @@ public:
 	double getLatitude(void);
 	double getLongitude(void);
 	double getAltitude(void);
+	nav_msgs::Odometry* getOdom(void);
 
 	void setBattery(const bebop_msgs::CommonCommonStateBatteryStateChangedConstPtr&);
 	void setWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedConstPtr&);
@@ -35,7 +36,7 @@ public:
 private:
 	short bat;
 	short wifi;
-	geometry_msgs::Twist odom;
+	nav_msgs::Odometry odom;
 	sensor_msgs::NavSatFix pos;
 	ros::Subscriber sub[4];
 };
