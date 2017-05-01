@@ -24,6 +24,11 @@ GUIC* velx;
 GUIC* vely;
 GUIC* velz;
 
+GUIC* cmdx;
+GUIC* cmdy;
+GUIC* cmdz;
+GUIC* cmdr;
+
 std::string format(double num, int prec) {
 	if( isnanf(num) ) return "No Fix";
 
@@ -117,11 +122,11 @@ void Window::update() {
 	batt->render(ren);
 
 	t = "LAT: ";
-	lat->setText(t + format(stats.getLatitude(), 5) + "\u00B0", ren);
+	lat->setText(t + format(stats.getLatitude(), 5) + "*", ren);
 	lat->render(ren);
 
 	t = "LON: ";
-	lon->setText(t + format(stats.getLongitude(), 5) + "\u00B0", ren);
+	lon->setText(t + format(stats.getLongitude(), 5) + "*", ren);
 	lon->render(ren);
 
 	t = "ALT: ";
@@ -130,16 +135,32 @@ void Window::update() {
 
 
 	t = "XVEL: ";
-	velx->setText(t + format(stats.getXVelocity(), 3) + "m/s", ren);
+	velx->setText(t + format(stats.getXVelocity(), 3) + " m/s", ren);
 	velx->render(ren);
 
 	t = "YVEL: ";
-	vely->setText(t + format(stats.getYVelocity(), 3) + "m/s", ren);
+	vely->setText(t + format(stats.getYVelocity(), 3) + " m/s", ren);
 	vely->render(ren);
 
 	t = "ZVEL: ";
-	velz->setText(t + format(stats.getZVelocity(), 3) + "m/s", ren);
+	velz->setText(t + format(stats.getZVelocity(), 3) + " m/s", ren);
 	velz->render(ren);
+
+	t = "CMDX: ";
+	cmdx->setText(t + format(0, 3) + " m/s", ren);
+	cmdx->render(ren);
+
+	t = "CMDY: ";
+	cmdy->setText(t + format(0, 3) + " m/s", ren);
+	cmdy->render(ren);
+
+	t = "CMDZ: ";
+	cmdz->setText(t + format(0, 3) + " m/s", ren);
+	cmdz->render(ren);
+
+	t = "CMDR: ";
+	cmdr->setText(t + format(0, 3) + " deg/s", ren);
+	cmdr->render(ren);
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
 	SDL_RenderPresent(ren);
@@ -182,6 +203,17 @@ void Window::makeGUI() {
 	alt = new GUIC(font, VIDEO_WIDTH + 4, 4 + 48 + 8, -1, 24);
 	alt->setText("ALT: " + format(0.12345678, 4) + "m", ren);
 
+	cmdx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 8, -1, 24);
+	cmdx->setText("CMDX: 0m/s", ren);
+
+	cmdy = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 7, -1, 24);
+	cmdy->setText("CMDY: 0m/s", ren);
+
+	cmdz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 6, -1, 24);
+	cmdz->setText("CMDZ: 0m/s", ren);
+
+	cmdr = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 5, -1, 24);
+	cmdr->setText("CMDR: 0 deg/s", ren);
 
 	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
 	velx->setText("XVEL: 0m/s", ren);
