@@ -11,7 +11,7 @@
 #define DIR uint8_t;
 
 struct State {
-    int distance;
+    double distance;
     DIR direction;
     geometry_msgs::Point start;
 };
@@ -23,13 +23,17 @@ public:
     void destroy(void);
 
     void patrol();
+    void start(double, double);
 
 private:
     ros::Publisher pub;
     State current_state;
+    int radius;
+    double spacing;
+    bool patrolling;
 
     void checkState();
-    State nextState();
+    void nextState();
 
 };
 
