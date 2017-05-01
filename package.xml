@@ -47,7 +47,8 @@
   <build_depend>bebop_msgs</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_transport</build_depend>
-  <build_depend>sdl2</build_depend>
+  <build_depend>libsdl2-dev</build_depend>
+  <build_depend>libsdl2-ttf-dev</build_depend>
 
   <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>
@@ -56,7 +57,8 @@
   <run_depend>bebop_msgs</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_transport</run_depend>
-  <run_depend>sdl2</run_depend>
+  <run_depend>libsdl2-dev</run_depend>
+  <run_depend>libsdl2-ttf-dev</run_depend>
 
 
 

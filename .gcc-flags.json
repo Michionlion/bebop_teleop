@@ -3,6 +3,6 @@
   "gccDefaultCFlags": "-Wall",
   "gccDefaultCppFlags": "-Wall -std=c++11 -fsyntax-only",
   "gccErrorLimit": 15,
-  "gccIncludePaths": ".,./include,include,/opt/ros/include",
+  "gccIncludePaths": ".,./include,include,/opt/ros/kinetic/include",
   "gccSuppressWarnings": true
 }

@@ -50,7 +50,7 @@ double StateTracker::getZVelocity() {
 	return odom.twist.twist.linear.z;
 }
 
-nav_msgs::Odometry* StateTracker::getOdom(){
+nav_msgs::Odometry* StateTracker::getOdom() {
 	return &odom;
 }
 
@@ -86,7 +86,7 @@ void StateTracker::setWifi(const bebop_msgs::CommonCommonStateWifiSignalChangedC
 }
 
 void StateTracker::setOdom(const nav_msgs::OdometryConstPtr& od) {
-	odom = od;
+	odom = *od;
 }
 
 void StateTracker::setPos(const sensor_msgs::NavSatFixConstPtr& po) {

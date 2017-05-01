@@ -1,3 +1,4 @@
 <launch>
-<node name="bebop_teleop" pkg="bebop_teleop" type="bebop_teleop" required="true" output="screen"/>
+	<node name="webcam" pkg="bebop_teleop" type="webcam" required="false" output="screen"/>
+	<node name="bebop_teleop" pkg="bebop_teleop" type="bebop_teleop" required="true" output="screen"/>
 </launch>

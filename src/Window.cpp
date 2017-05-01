@@ -4,8 +4,22 @@
 
 #define VIDEO_WIDTH 640
 #define VIDEO_HEIGHT 368
+#define WINDOW_WIDTH 750
+#define WINDOW_HEIGHT 400
 
 Window window;
+
+GUIC* wifi;
+GUIC* batt;
+
+GUIC* lat;
+GUIC* lon;
+GUIC* alt;
+
+GUIC* velx;
+GUIC* vely;
+GUIC* velz;
+
 
 Window::Window(bool& err) {
 	err = init();
@@ -20,17 +34,16 @@ Window::~Window() {
 }
 
 void Window::event(SDL_Event* event) {
-	if(event->type == SDL_QUIT) {destroy();} else if(event->type == SDL_MOUSEBUTTONDOWN) {
-		auto beg = components.begin();
-		auto end = components.end();
-		for(; beg != end; beg++) {
-			if( beg->inside(event->button.x, event->button.y) ) beg->callCB();
-		}
-	}
+	if(!alive) return;
+
+	if(event->type == SDL_QUIT) {destroy();} else if(event->type == SDL_MOUSEBUTTONDOWN) {}
 }
 
 void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
 	// ROS_INFO("GOT IMAGE WITH FORMAT: %s, size (%d, %d)", img->encoding.c_str(), img->width, img->height);
+
+
+	bool bgr = strncmp(img->encoding.c_str(), "bgr", 3) == 0;
 
 	int pitch = img->step;
 
@@ -49,10 +62,15 @@ void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
 			if(iCol + 2 >= pitch) continue;
 			texIndex = row * texPitch + col;
 			iIndex = row * pitch + iCol;
-
-			pixels[texIndex + 0] = img->data[iIndex + 2];	// red
-			pixels[texIndex + 1] = img->data[iIndex + 1];	// green
-			pixels[texIndex + 2] = img->data[iIndex + 0];	// blue
+			if(bgr) {
+				pixels[texIndex + 0] = img->data[iIndex + 0];	// red
+				pixels[texIndex + 1] = img->data[iIndex + 1];	// green
+				pixels[texIndex + 2] = img->data[iIndex + 2];	// blue
+			} else {
+				pixels[texIndex + 0] = img->data[iIndex + 2];	// red
+				pixels[texIndex + 1] = img->data[iIndex + 1];	// green
+				pixels[texIndex + 2] = img->data[iIndex + 0];	// blue
+			}
 			pixels[texIndex + 3] = 0xFF;// alpha - doesn't matter unless blending
 			iCol += 3;
 		}
@@ -69,23 +87,20 @@ void Window::update() {
 
 	if(video_dirty) {
 		// center image in pane
-		SDL_GetWindowSize(win, &r.x, NULL);
-		r.x = (r.x / 2) - (VIDEO_WIDTH / 2);
+		r.y = WINDOW_HEIGHT - VIDEO_HEIGHT;
 
 		SDL_RenderCopy(ren, video, NULL, &r);
 
 		// SDL_RenderCopy(ren, video, NULL, NULL);
-		SDL_RenderPresent(ren);	// will want to move this out of if statement if anything else is being drawn/updated
+
 		video_dirty = false;
 	}
 
-	auto beg = components.begin();
-	auto end = components.end();
-	for(; beg != end; beg++) {
-		beg->render(ren);
-	}
+	wifi->render(ren);
+	batt->render(ren);
 
-	// ROS_INFO("RENDER PRESENT");
+	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE
+	SDL_RenderPresent(ren);
 }
 
 bool Window::ok() {
@@ -94,10 +109,39 @@ bool Window::ok() {
 
 void Window::destroy() {
 	alive = false;
+
+
+// seg fault in closefont... no idea why
+	// TTF_CloseFont(font);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
-	SDL_Quit();
+
 	TTF_Quit();
+	SDL_Quit();
+}
+
+void Window::makeGUI() {
+	// GUIC* text = new GUIC(font, 5, 4, -1, 28);
+	// text->setText("test text", ren);
+
+
+	batt = new GUIC(font, 4, 4, 100, 28);
+
+	batt->setText("BAT: 90%", ren);
+
+	wifi = new GUIC(font, 200, 4, 50, 28);
+
+	wifi->setText("WIFI: 10%", ren);
+
+
+	//
+	// lat;
+	// lon;
+	// alt;
+	//
+	// velx;
+	// vely;
+	// velz;
 }
 
 bool Window::init() {
@@ -113,8 +157,12 @@ bool Window::init() {
 		return true;
 	}
 
+	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/sqr.ttf", 28);
+	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
-	SDL_CreateWindowAndRenderer(VIDEO_WIDTH + 200, VIDEO_HEIGHT + 80, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE, &win, &ren);
+	// return true;
+
+	SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL, &win, &ren);
 	if(win == NULL || ren == NULL) {
 		ROS_ERROR( "SDL CREATE WINDOW FAIL: %s\n", SDL_GetError() );
 		return true;
@@ -130,5 +178,6 @@ bool Window::init() {
 	SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
 	SDL_RenderClear(ren);
 	SDL_RenderPresent(ren);
+	makeGUI();
 	return false;
 }

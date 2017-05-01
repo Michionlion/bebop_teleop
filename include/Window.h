@@ -10,11 +10,14 @@ class Window : Listener {
 public:
 	Window(bool&);
 	Window(void);
-	~Window(void);
+	~Window(void) noexcept;
+	Window(const Window& other) = delete;
+	Window(Window && other) = delete;
 	void event(SDL_Event*);
 	void update(void);
 	void destroy(void);
 	bool ok(void);
+	void makeGUI(void);
 
 	void updateVideoTexture(const sensor_msgs::ImageConstPtr&);
 
@@ -23,7 +26,7 @@ private:
 	SDL_Renderer* ren;
 	SDL_Texture* video;
 	sensor_msgs::Image image;
-	std::vector<GUIC> components;
+	TTF_Font* font;
 	bool video_dirty;
 	bool alive;
 	bool init(void);

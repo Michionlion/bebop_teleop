@@ -1,4 +1,5 @@
 #include "ManualControl.h"
+#include "Patroller.h"
 #include "StateTracker.h"
 #include "Window.h"
 #include <geometry_msgs/Twist.h>
