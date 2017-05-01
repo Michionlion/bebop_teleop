@@ -25,6 +25,7 @@ ManualControl control;
 
 ManualControl::ManualControl() {
 	input.registerKeyListener(this);
+	enabled = true;
 }
 
 ManualControl::~ManualControl() {
@@ -79,7 +80,7 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			break;
 
 		case SDL_SCANCODE_7:
-			patroller.start(3, 0.4, 0.15);
+			patroller.start(2, 0.25, 0.08);
 			break;
 
 		case SDL_SCANCODE_8:

@@ -82,7 +82,7 @@ void Patroller::patrol() {
 void Patroller::stop() {
 	ROS_INFO("STOPPING PATROL");
 	patrolling = false;
-	control.toggle();
+	if( !control.isEnabled() ) control.toggle();
 }
 
 void Patroller::start(double altitude, double spacing, double speed) {
