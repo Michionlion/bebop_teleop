@@ -1,3 +1,4 @@
+#include "ManualControl.h"
 #include "Patroller.h"
 #include "StateTracker.h"
 #include <cmath>
@@ -12,27 +13,26 @@ Patroller::~Patroller() {
 	destroy();
 }
 
-void Patroller::destroy() {
-	pub.shutdown();
-}
+void Patroller::destroy() {}
 
 void Patroller::checkState() {
 	// switch statement in case we need to check signage
+	ROS_INFO( "OFF: %f %f", fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x), fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) );
 	switch(current_state.direction) {
 	case FORWARD:
-		if(abs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
+		if(fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
 		break;
 
 	case RIGHT:
-		if(abs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
+		if(fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
 		break;
 
 	case BACKWARD:
-		if(abs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
+		if(fabs(stats.getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
 		break;
 
 	case LEFT:
-		if(abs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
+		if(fabs(stats.getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
 		break;
 	}
 }
@@ -54,30 +54,40 @@ void Patroller::patrol() {
 	checkState();
 	geometry_msgs::Twist vel;
 
+	ROS_INFO("STATE: DIR: %d DIS: %f", current_state.direction, current_state.distance);
+
 	switch(current_state.direction) {
 	case FORWARD:
 		vel.linear.x = speed;
-		pub.publish(vel);
+		control.send(&vel);
 		return;
 
 	case RIGHT:
 		vel.linear.y = -speed;
-		pub.publish(vel);
+		control.send(&vel);
 		return;
 
 	case BACKWARD:
 		vel.linear.x = -speed;
-		pub.publish(vel);
+		control.send(&vel);
 		return;
 
 	case LEFT:
 		vel.linear.y = speed;
-		pub.publish(vel);
+		control.send(&vel);
 		return;
 	}
 }
 
+void Patroller::stop() {
+	ROS_INFO("STOPPING PATROL");
+	patrolling = false;
+	control.toggle();
+}
+
 void Patroller::start(double altitude, double spacing, double speed) {
+	ROS_INFO("STARTING PATROL");
+	if( control.isEnabled() ) control.toggle();
 	radius = (int) ceil(altitude);
 	this->spacing = spacing;
 	this->speed = speed;

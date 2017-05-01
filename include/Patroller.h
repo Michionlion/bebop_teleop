@@ -27,7 +27,6 @@ public:
 	void stop(void);
 
 private:
-	ros::Publisher pub;
 	State current_state;
 	int radius;
 	double spacing;

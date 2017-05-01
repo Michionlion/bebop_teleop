@@ -1,3 +1,4 @@
+#include "StateTracker.h"
 #include "Window.h"
 #include <SDL2/SDL_ttf.h>
 #include <iomanip>
@@ -12,6 +13,7 @@
 Window window;
 
 GUIC* wifi;
+const char* wifiT = "Wifi: ";
 GUIC* batt;
 
 GUIC* lat;
@@ -103,7 +105,13 @@ void Window::update() {
 		video_dirty = false;
 	}
 
+	// update
+	std::string t = ( abs( stats.getWifiStrength() ) > 40 ? "+" : (abs( stats.getWifiStrength() ) > 15 ? "++" : "+++") );
+	wifi->setText(wifiT + t, ren);
 	wifi->render(ren);
+
+	t = "BAT: ";
+	batt->setText(t + format(stats.getBattery(), 2) + "%", ren);
 	batt->render(ren);
 	lat->render(ren);
 	lon->render(ren);
@@ -125,7 +133,7 @@ void Window::destroy() {
 
 
 // seg fault in closefont... no idea why
-	TTF_CloseFont(font);
+	// TTF_CloseFont(font);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 
@@ -177,7 +185,7 @@ bool Window::init() {
 		return true;
 	}
 
-	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/sqr.ttf", 24);
+	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/arial.ttf", 20);
 	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
 	// return true;

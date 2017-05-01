@@ -1,5 +1,6 @@
 #include "Input.h"
 #include "ManualControl.h"
+#include "Patroller.h"
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -20,6 +21,7 @@
 #define DO_TAKEOFF 5
 #define DO_RESET 6
 
+ManualControl control;
 
 ManualControl::ManualControl() {
 	input.registerKeyListener(this);
@@ -76,6 +78,14 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			doMisc(DO_RESET);
 			break;
 
+		case SDL_SCANCODE_7:
+			patroller.start(3, 0.4, 0.15);
+			break;
+
+		case SDL_SCANCODE_8:
+			patroller.stop();
+			break;
+
 		default:
 			return;
 		}
@@ -101,11 +111,18 @@ void ManualControl::toggle() {
 	pub[VELOCITY].publish(vel);
 }
 
+void ManualControl::send(geometry_msgs::Twist* msg) {
+	ROS_INFO("PUBLISH MSG");
+	pub[VELOCITY].publish(*msg);
+}
+
 bool ManualControl::isEnabled() {
 	return enabled;
 }
 
 void ManualControl::publishVel() {
+	if(!enabled) return;
+
 	if( input.isKeyDown(SDL_SCANCODE_1) && !input.isKeyDown(SDL_SCANCODE_2) ) {
 		speed -= SPEED_INCREMENT;
 		goto CHECK_SPEED;

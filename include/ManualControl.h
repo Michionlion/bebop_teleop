@@ -2,6 +2,7 @@
 #define __MANUAL_H__
 
 #include "Input.h"
+#include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #define VELOCITY 0
 #define TAKEOFF 1
@@ -24,6 +25,7 @@ public:
 	void doMisc(short);
 	void doFlip(short);
 	void navHome(bool);
+	void send(geometry_msgs::Twist*);
 	void advertise(ros::NodeHandle&);
 	void key(SDL_KeyboardEvent*);
 
@@ -35,5 +37,7 @@ private:
 	double camX;
 	double camY;
 };
+
+extern ManualControl control;
 
 #endif

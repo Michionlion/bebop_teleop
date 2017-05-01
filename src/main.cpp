@@ -15,7 +15,6 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "bebop_teleop");
 	ros::NodeHandle nh;
 	ros::NodeHandle local_nh("~");
-	ManualControl control;
 
 	control.advertise(nh);
 
