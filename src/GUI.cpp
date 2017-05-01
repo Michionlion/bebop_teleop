@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "GUI.h"
 #include <SDL2/SDL_ttf.h>
 
 GUIC::GUIC(int x, int y, int width, int height) {
@@ -33,7 +33,7 @@ bool GUIC::inside(int x, int y) const {
 }
 
 void GUIC::callCB() {
-	if(callback != NULL) callback->call(&this);
+	if(callback != NULL) callback->call(this);
 }
 
 void GUIC::setCallback(Callback* cb) {
