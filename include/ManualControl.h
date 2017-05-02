@@ -28,6 +28,7 @@ public:
 	void send(geometry_msgs::Twist*);
 	void advertise(ros::NodeHandle&);
 	void key(SDL_KeyboardEvent*);
+	geometry_msgs::Twist* getLast(void);
 
 private:
 	bool enabled = true;
@@ -36,6 +37,7 @@ private:
 	double rotSpeed = 0.7;
 	double camX = 0;
 	double camY = 0;
+	geometry_msgs::Twist last;
 };
 
 extern ManualControl* control;

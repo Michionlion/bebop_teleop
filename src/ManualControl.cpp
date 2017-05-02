@@ -102,6 +102,10 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 
 }
 
+geometry_msgs::Twist* ManualControl::getLast() {
+	return &last;
+}
+
 void ManualControl::advertise(ros::NodeHandle& nh) {
 	pub[VELOCITY] = nh.advertise<geometry_msgs::Twist>("bebop/cmd_vel", 1);
 	pub[TAKEOFF] = nh.advertise<std_msgs::Empty>("bebop/takeoff", 1);
@@ -123,6 +127,7 @@ void ManualControl::toggle() {
 
 void ManualControl::send(geometry_msgs::Twist* msg) {
 	ROS_INFO("PUBLISH MSG");
+	last = *msg;
 	pub[VELOCITY].publish(*msg);
 }
 
@@ -163,21 +168,25 @@ CHECK_ROT_SPEED:
 	ROS_INFO("Rotation speed: %f", rotSpeed);
 
 END_CHECK_ROT_SPEED:
-	geometry_msgs::Twist vel;
+	last.linear.x = 0;
+	last.linear.y = 0;
+	last.linear.z = 0;
+	last.angular.z = 0;
 
-	if( input->isKeyDown(SDL_SCANCODE_W) && !input->isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = speed;
-	else if( !input->isKeyDown(SDL_SCANCODE_W) && input->isKeyDown(SDL_SCANCODE_S) ) vel.linear.x = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_W) && !input->isKeyDown(SDL_SCANCODE_S) ) last.linear.x = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_W) && input->isKeyDown(SDL_SCANCODE_S) ) last.linear.x = -speed;
 
-	if( input->isKeyDown(SDL_SCANCODE_A) && !input->isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = speed;
-	else if( !input->isKeyDown(SDL_SCANCODE_A) && input->isKeyDown(SDL_SCANCODE_D) ) vel.linear.y = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_A) && !input->isKeyDown(SDL_SCANCODE_D) ) last.linear.y = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_A) && input->isKeyDown(SDL_SCANCODE_D) ) last.linear.y = -speed;
 
-	if( input->isKeyDown(SDL_SCANCODE_SPACE) && !input->isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = speed;
-	else if( !input->isKeyDown(SDL_SCANCODE_SPACE) && input->isKeyDown(SDL_SCANCODE_LSHIFT) ) vel.linear.z = -speed;
+	if( input->isKeyDown(SDL_SCANCODE_SPACE) && !input->isKeyDown(SDL_SCANCODE_LSHIFT) ) last.linear.z = speed;
+	else if( !input->isKeyDown(SDL_SCANCODE_SPACE) && input->isKeyDown(SDL_SCANCODE_LSHIFT) ) last.linear.z = -speed;
 
-	if( input->isKeyDown(SDL_SCANCODE_Q) && !input->isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = rotSpeed;
-	else if( !input->isKeyDown(SDL_SCANCODE_Q) && input->isKeyDown(SDL_SCANCODE_E) ) vel.angular.z = -rotSpeed;
+	if( input->isKeyDown(SDL_SCANCODE_Q) && !input->isKeyDown(SDL_SCANCODE_E) ) last.angular.z = rotSpeed;
+	else if( !input->isKeyDown(SDL_SCANCODE_Q) && input->isKeyDown(SDL_SCANCODE_E) ) last.angular.z = -rotSpeed;
 
-	pub[VELOCITY].publish(vel);
+
+	pub[VELOCITY].publish(last);
 }
 
 void ManualControl::publishCam() {

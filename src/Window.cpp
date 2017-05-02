@@ -1,3 +1,5 @@
+#include "ManualControl.h"
+#include "Patroller.h"
 #include "StateTracker.h"
 #include "Window.h"
 #include <SDL2/SDL_ttf.h>
@@ -12,6 +14,10 @@
 #define WINDOW_HEIGHT 400
 
 #define PREC(p) std::fixed << std::setprecision(p)
+
+#ifndef FONT_PATH
+#define FONT_PATH "/home/michionlion/catkin_ws/src/bebop_teleop/arial.ttf"
+#endif
 
 Window* window;
 
@@ -30,6 +36,12 @@ GUIC* cmdx;
 GUIC* cmdy;
 GUIC* cmdz;
 GUIC* cmdr;
+
+GUIC* patrol;
+
+GUIC* speed;
+GUIC* inc;
+GUIC* dec;
 
 // const char* format(double num, int prec) {
 // std::stringstream stream;
@@ -58,7 +70,8 @@ Window::~Window() {
 void Window::event(SDL_Event* event) {
 	if(!alive) return;
 
-	if(event->type == SDL_QUIT) {alive = false;} else if(event->type == SDL_MOUSEBUTTONDOWN) {}
+	if(event->type == SDL_QUIT) alive = false;else if(event->type == SDL_MOUSEBUTTONDOWN)
+		if( patrol->inside(event->button.x, event->button.y) ) patrol->callCB();
 }
 
 void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
@@ -102,14 +115,13 @@ END:
 	SDL_UnlockTexture(video);
 }
 
-SDL_Rect r = {0, 0, VIDEO_WIDTH, VIDEO_HEIGHT};
+SDL_Rect r = {0, WINDOW_HEIGHT - VIDEO_HEIGHT, VIDEO_WIDTH, VIDEO_HEIGHT};
 void Window::update() {
 	// do update
 	if( !ok() ) return;
 
 	if(video_dirty) {
 		// center image in pane
-		r.y = WINDOW_HEIGHT - VIDEO_HEIGHT;
 
 		SDL_RenderCopy(ren, video, NULL, &r);
 
@@ -122,7 +134,7 @@ void Window::update() {
 
 	std::stringstream str;
 	bool gpsfix = stats->hasFix();
-	str << "Wifi: l" << ( abs( stats->getWifiStrength() ) > 75 ? "+   " : ( abs( stats->getWifiStrength() ) > 50 ? "++  " : (abs( stats->getWifiStrength() ) > 20 ? "+++ " : "++++") ) ) << "l";
+	str << "Wifi: l" << ( abs( stats->getWifiStrength() ) > 75 ? "+      " : ( abs( stats->getWifiStrength() ) > 50 ? "++    " : (abs( stats->getWifiStrength() ) > 20 ? "+++  " : "++++") ) ) << "l";
 	wifi->setText(str.str(), ren);
 	wifi->render(ren);
 
@@ -169,24 +181,26 @@ void Window::update() {
 	velz->render(ren);
 
 	reset(str);
-	str << "CMDX: " << PREC(2) << 0.0 << " m/s";
+	str << "CMDX: " << PREC(2) << control->getLast()->linear.x;
 	cmdx->setText(str.str(), ren);
 	cmdx->render(ren);
 
 	reset(str);
-	str << "CMDY: " << PREC(2) << 0.0 << " m/s";
+	str << "CMDY: " << PREC(2) << control->getLast()->linear.y;
 	cmdy->setText(str.str(), ren);
 	cmdy->render(ren);
 
 	reset(str);
-	str << "CMDZ: " << PREC(2) << 0.0 << " m/s";
+	str << "CMDZ: " << PREC(2) << control->getLast()->linear.z;
 	cmdz->setText(str.str(), ren);
 	cmdz->render(ren);
 
 	reset(str);
-	str << "CMDR: " << PREC(2) << 0.0 << " d/s";
+	str << "CMDR: " << PREC(2) << control->getLast()->angular.z;
 	cmdr->setText(str.str(), ren);
 	cmdr->render(ren);
+
+	patrol->render(ren);
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
 	SDL_RenderPresent(ren);
@@ -196,13 +210,29 @@ bool Window::ok() {
 	return alive;
 }
 
+void destGUI() {
+	delete cmdx;
+	delete cmdy;
+	delete cmdz;
+	delete cmdr;
+	delete velx;
+	delete vely;
+	delete velz;
+	delete batt;
+	delete wifi;
+	delete lat;
+	delete lon;
+	delete alt;
+	delete patrol;
+}
+
 void Window::destroy() {
 	alive = false;
 
 	TTF_CloseFont(font);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
-
+	destGUI();
 	TTF_Quit();
 	SDL_Quit();
 }
@@ -226,6 +256,23 @@ void Window::makeGUI() {
 	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
 	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
+
+	patrol = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 11, -1, 24);
+	patrol->setBG(100, 100, 100);
+	patrol->setText(" start patrol ", ren);
+	patrol->setCallback(
+		[this](GUIC * g) {
+			if(g->getText()[3] == 'o') {
+				g->setBG(100, 100, 100);
+				g->setText(" start patrol ", ren, 0);
+				patroller->stop();
+			} else {
+				g->setBG(170, 70, 70);
+				g->setText(" stop patrol ", ren, 0);
+				patroller->start(2, 0.25, 0.08);
+			}
+		}
+		);
 }
 
 bool Window::init() {
@@ -241,7 +288,7 @@ bool Window::init() {
 		return true;
 	}
 
-	font = TTF_OpenFont("/home/michionlion/catkin_ws/src/bebop_teleop/arial.ttf", 20);
+	font = TTF_OpenFont(FONT_PATH, 20);
 	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
 	// return true;
