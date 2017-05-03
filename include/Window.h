@@ -21,6 +21,7 @@ public:
 
 	void updateVideoTexture(const sensor_msgs::ImageConstPtr&);
 
+	static std::string font_path;
 private:
 	SDL_Window* win;
 	SDL_Renderer* ren;

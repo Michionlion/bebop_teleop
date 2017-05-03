@@ -15,11 +15,9 @@
 
 #define PREC(p) std::fixed << std::setprecision(p)
 
-#ifndef FONT_PATH
-#define FONT_PATH "/home/michionlion/catkin_ws/src/bebop_teleop/arial.ttf"
-#endif
-
 Window* window;
+
+std::string Window::font_path;
 
 GUIC* wifi;
 GUIC* batt;
@@ -288,7 +286,7 @@ bool Window::init() {
 		return true;
 	}
 
-	font = TTF_OpenFont(FONT_PATH, 20);
+	font = TTF_OpenFont(font_path.c_str(), 20);
 	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
 	// return true;
