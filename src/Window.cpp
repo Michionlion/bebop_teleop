@@ -265,15 +265,21 @@ void Window::destroy() {
 }
 
 void Window::makeGUI() {
-	batt = new GUIC(font, 4, 4, -1, 24);
+	int H;
+	int W;
+	TTF_SizeText(font, "1.00", &W, &H);
+	int Y = (WINDOW_HEIGHT - VIDEO_HEIGHT - H) / 2;
+	#define X VIDEO_WIDTH - 400
+	#define X2 VIDEO_WIDTH - 200
 
 	int i;
 	TTF_SizeText(font, "BAT: 000%", &i, NULL);
-	wifi = new GUIC(font, i + 8, 4, -1, 24);
+	wifi = new GUIC(font, i + Y * 2, Y, -1, 24);
+	batt = new GUIC(font, Y, Y, -1, 24);
 
-	lat = new GUIC(font, VIDEO_WIDTH + 4, 4, -1, 24);
-	lon = new GUIC(font, VIDEO_WIDTH + 4, 4 + 24 + 4, -1, 24);
-	alt = new GUIC(font, VIDEO_WIDTH + 4, 4 + 48 + 8, -1, 24);
+	lat = new GUIC(font, VIDEO_WIDTH + 4, Y, -1, 24);
+	lon = new GUIC(font, VIDEO_WIDTH + 4, Y + 24 + 4, -1, 24);
+	alt = new GUIC(font, VIDEO_WIDTH + 4, Y + 48 + 8, -1, 24);
 
 	cmdx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 8, -1, 24);
 	cmdy = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 7, -1, 24);
@@ -284,12 +290,6 @@ void Window::makeGUI() {
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
 	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
 
-	#define H 24
-	int W;
-	TTF_SizeText(font, "1.00", &W, NULL);
-	#define X VIDEO_WIDTH - 400
-	#define X2 VIDEO_WIDTH - 200
-	#define Y 4
 	labels = new GUIC(font, X, Y, -1, H);
 	speed = new GUIC(font, X + 70, Y, W, H);
 	inc = new GUIC(font, X + 72 + W, Y, H, H);
@@ -326,11 +326,11 @@ void Window::makeGUI() {
 		[this](GUIC * g) {
 			if(g->getText()[3] == 'o') {
 				g->setBG(100, 100, 100);
-				g->setText(" start patrol ", ren, 0);
+				g->setText(" Start Patrol ", ren, 0);
 				patroller->stop();
 			} else {
 				g->setBG(170, 70, 70);
-				g->setText(" stop patrol ", ren, 0);
+				g->setText(" Stop Patrol ", ren, 0);
 				patroller->start(2, 0.25, 0.08);
 			}
 		});
