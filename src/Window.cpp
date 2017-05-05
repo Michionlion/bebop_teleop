@@ -307,10 +307,10 @@ void Window::makeGUI() {
 	decr->setBG(130, 100, 100);
 	labels->setText("Spd:", ren, GUIC::RESIZE_X);
 	labelr->setText("Rot:", ren, GUIC::RESIZE_X);
-	inc->setText(">", ren, GUIC::RESIZE_NONE);
-	incr->setText(">", ren, GUIC::RESIZE_NONE);
-	dec->setText("<", ren, GUIC::RESIZE_NONE);
-	decr->setText("<", ren, GUIC::RESIZE_NONE);
+	inc->setText(" > ", ren, GUIC::RESIZE_NONE);
+	incr->setText(" > ", ren, GUIC::RESIZE_NONE);
+	dec->setText(" < ", ren, GUIC::RESIZE_NONE);
+	decr->setText(" < ", ren, GUIC::RESIZE_NONE);
 	speed->setText("1.00", ren, GUIC::RESIZE_NONE);
 	speedr->setText("1.00", ren, GUIC::RESIZE_NONE);
 
