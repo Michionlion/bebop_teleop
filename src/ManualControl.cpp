@@ -20,6 +20,7 @@
 #define DO_LAND 4
 #define DO_TAKEOFF 5
 #define DO_RESET 6
+#define GUI_SPEED_SCALE 5
 
 ManualControl* control;
 
@@ -250,28 +251,28 @@ void ManualControl::navHome(bool state) {
 
 void ManualControl::incSpeed() {
 
-	speed += SPEED_INCREMENT;
+	speed += GUI_SPEED_SCALE*SPEED_INCREMENT;
 	if(speed >= 1 - SPEED_INCREMENT / 2) speed = 1;
 
 }
 
 void ManualControl::decSpeed() {
 
-	speed -= SPEED_INCREMENT;
+	speed -= GUI_SPEED_SCALE*SPEED_INCREMENT;
 	if(speed < SPEED_INCREMENT / 2) speed = SPEED_INCREMENT;
 
 }
 
 void ManualControl::incRotSpeed() {
 
-	rotSpeed += ROTATE_INCREMENT;
+	rotSpeed += GUI_SPEED_SCALE*ROTATE_INCREMENT;
 	if(rotSpeed >= 1 - ROTATE_INCREMENT / 2) rotSpeed = 1;
 
 }
 
 void ManualControl::decRotSpeed() {
 
-	rotSpeed -= ROTATE_INCREMENT;
+	rotSpeed -= GUI_SPEED_SCALE*ROTATE_INCREMENT;
 	if(rotSpeed < ROTATE_INCREMENT / 2) rotSpeed = ROTATE_INCREMENT;
 
 }
