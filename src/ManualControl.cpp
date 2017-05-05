@@ -247,3 +247,39 @@ void ManualControl::navHome(bool state) {
 	m.data = state;
 	pub[HOME].publish(m);
 }
+
+void ManualControl::incSpeed() {
+
+	speed += SPEED_INCREMENT;
+	if(speed >= 1 - SPEED_INCREMENT / 2) speed = 1;
+
+}
+
+void ManualControl::decSpeed() {
+
+	speed -= SPEED_INCREMENT;
+	if(speed < SPEED_INCREMENT / 2) speed = SPEED_INCREMENT;
+
+}
+
+void ManualControl::incRotSpeed() {
+
+	rotSpeed += ROTATE_INCREMENT;
+	if(rotSpeed >= 1 - ROTATE_INCREMENT / 2) rotSpeed = 1;
+
+}
+
+void ManualControl::decRotSpeed() {
+
+	rotSpeed -= ROTATE_INCREMENT;
+	if(rotSpeed < ROTATE_INCREMENT / 2) rotSpeed = ROTATE_INCREMENT;
+
+}
+
+double ManualControl::getSpeed() {
+	return speed;
+}
+
+double ManualControl::getRotSpeed() {
+	return rotSpeed;
+}
