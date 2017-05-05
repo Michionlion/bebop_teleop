@@ -37,9 +37,14 @@ GUIC* cmdr;
 
 GUIC* patrol;
 
+GUIC* labels;
+GUIC* labelr;
 GUIC* speed;
+GUIC* speedr;
 GUIC* inc;
+GUIC* incr;
 GUIC* dec;
+GUIC* decr;
 
 // const char* format(double num, int prec) {
 // std::stringstream stream;
@@ -198,7 +203,26 @@ void Window::update() {
 	cmdr->setText(str.str(), ren);
 	cmdr->render(ren);
 
+	reset(str);
+	str << PREC(2) << control->getSpeed();
+	speed->setText(str.str(), ren);
+	speed->render(ren);
+
+	reset(str);
+	str << PREC(2) << control->getRotSpeed();
+	speedr->setText(str.str(), ren);
+	speedr->render(ren);
+
+	inc->render(ren);
+	dec->render(ren);
+	incr->render(ren);
+	decr->render(ren);
+
+	labels->render(ren);
+	labelr->render(ren);
+
 	patrol->render(ren);
+
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
 	SDL_RenderPresent(ren);
@@ -254,6 +278,28 @@ void Window::makeGUI() {
 	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
 	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
+
+	#define H 12
+	#define W 24
+	#define X VIDEO_WIDTH - 200
+	#define Y 2
+	labels = new GUIC(font, X, Y, -1, H);
+	labelr = new GUIC(font, X, Y + 14, -1, H);
+	speed = new GUIC(font, X + 70, Y, W, H);
+	speedr = new GUIC(font, X + 70, Y + 14, W, H);
+	inc = new GUIC(font, X + 72 + W, Y, H, H);
+	dec = new GUIC(font, X + 68 - W, Y + 14, H, H);
+	incr = new GUIC(font, X + 72 + W, Y, H, H);
+	decr = new GUIC(font, X + 68 - W, Y + 14, H, H);
+
+	labels->setText("Spd:", ren, GUIC::RESIZE_X);
+	labelr->setText("Rot:", ren, GUIC::RESIZE_X);
+	inc->setText(">", ren, GUIC::RESIZE_NONE);
+	incr->setText(">", ren, GUIC::RESIZE_NONE);
+	dec->setText("<", ren, GUIC::RESIZE_NONE);
+	decr->setText("<", ren, GUIC::RESIZE_NONE);
+	speed->setText("1.00", ren, GUIC::RESIZE_NONE);
+	speedr->setText("1.00", ren, GUIC::RESIZE_NONE);
 
 	patrol = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 11, -1, 24);
 	patrol->setBG(100, 100, 100);

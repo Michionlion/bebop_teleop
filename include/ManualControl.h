@@ -30,6 +30,13 @@ public:
 	void key(SDL_KeyboardEvent*);
 	geometry_msgs::Twist* getLast(void);
 
+	void incSpeed(void);
+	void decSpeed(void);
+	void incRotSpeed(void);
+	void decRotSpeed(void);
+	double getSpeed(void);
+	double getRotSpeed(void);
+
 private:
 	bool enabled = true;
 	ros::Publisher pub[9];
