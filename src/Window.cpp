@@ -73,8 +73,13 @@ Window::~Window() {
 void Window::event(SDL_Event* event) {
 	if(!alive) return;
 
-	if(event->type == SDL_QUIT) alive = false;else if(event->type == SDL_MOUSEBUTTONDOWN)
+	if(event->type == SDL_QUIT) {alive = false;} else if(event->type == SDL_MOUSEBUTTONDOWN) {
 		if( patrol->inside(event->button.x, event->button.y) ) patrol->callCB();
+		if( inc->inside(event->button.x, event->button.y) ) inc->callCB();
+		if( incr->inside(event->button.x, event->button.y) ) incr->callCB();
+		if( dec->inside(event->button.x, event->button.y) ) dec->callCB();
+		if( decr->inside(event->button.x, event->button.y) ) decr->callCB();
+	}
 }
 
 void Window::updateVideoTexture(const sensor_msgs::ImageConstPtr& img) {
@@ -279,19 +284,27 @@ void Window::makeGUI() {
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
 	velz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28, -1, 24);
 
-	#define H 12
-	#define W 24
-	#define X VIDEO_WIDTH - 200
-	#define Y 2
+	#define H 24
+	int W;
+	TTF_SizeText(font, "1.00", &W, NULL);
+	#define X VIDEO_WIDTH - 400
+	#define X2 VIDEO_WIDTH - 200
+	#define Y 4
 	labels = new GUIC(font, X, Y, -1, H);
-	labelr = new GUIC(font, X, Y + 14, -1, H);
 	speed = new GUIC(font, X + 70, Y, W, H);
-	speedr = new GUIC(font, X + 70, Y + 14, W, H);
 	inc = new GUIC(font, X + 72 + W, Y, H, H);
-	dec = new GUIC(font, X + 68 - W, Y + 14, H, H);
-	incr = new GUIC(font, X + 72 + W, Y, H, H);
-	decr = new GUIC(font, X + 68 - W, Y + 14, H, H);
+	dec = new GUIC(font, X + 68 - H, Y, H, H);
 
+	labelr = new GUIC(font, X2, Y, -1, H);
+	speedr = new GUIC(font, X2 + 70, Y, W, H);
+	incr = new GUIC(font, X2 + 72 + W, Y, H, H);
+	decr = new GUIC(font, X2 + 68 - H, Y, H, H);
+
+	// ensure you set colors before text
+	inc->setBG(100, 130, 100);
+	incr->setBG(100, 130, 100);
+	dec->setBG(130, 100, 100);
+	decr->setBG(130, 100, 100);
 	labels->setText("Spd:", ren, GUIC::RESIZE_X);
 	labelr->setText("Rot:", ren, GUIC::RESIZE_X);
 	inc->setText(">", ren, GUIC::RESIZE_NONE);
@@ -300,6 +313,11 @@ void Window::makeGUI() {
 	decr->setText("<", ren, GUIC::RESIZE_NONE);
 	speed->setText("1.00", ren, GUIC::RESIZE_NONE);
 	speedr->setText("1.00", ren, GUIC::RESIZE_NONE);
+
+	inc->setCallback([] (GUIC * g) {control->incSpeed();});
+	incr->setCallback([] (GUIC * g) {control->incRotSpeed();});
+	dec->setCallback([] (GUIC * g) {control->decSpeed();});
+	decr->setCallback([] (GUIC * g) {control->decRotSpeed();});
 
 	patrol = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 11, -1, 24);
 	patrol->setBG(100, 100, 100);
@@ -315,8 +333,7 @@ void Window::makeGUI() {
 				g->setText(" stop patrol ", ren, 0);
 				patroller->start(2, 0.25, 0.08);
 			}
-		}
-		);
+		});
 }
 
 bool Window::init() {
@@ -336,13 +353,11 @@ bool Window::init() {
 	if(font == NULL) ROS_ERROR( "TTF FONT LOAD FAIL: %s\n", TTF_GetError() );
 
 	// return true;
-
 	SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL, &win, &ren);
 	if(win == NULL || ren == NULL) {
 		ROS_ERROR( "SDL CREATE WINDOW FAIL: %s\n", SDL_GetError() );
 		return true;
 	}
-
 
 	video = SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, VIDEO_HEIGHT);
 	if(video == NULL) {
