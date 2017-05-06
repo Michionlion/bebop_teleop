@@ -13,3 +13,11 @@ $ roslaunch bebop_teleop teleop.launch
 ```
 
 If a Bebop is not available, but you would still like to test the package, run `$ rosrun bebop_teleop webcam` in place of `$ roslaunch bebop_teleop bebop_connection.launch`. This will replace the Bebop camera feed with webcam feed in the GUI.
+
+##### Configuration
+Some asset files may need to be configured. You can see what can be changed by examining the `launch/teleop.launch` file, and changing the parameters. Alternatively, you can specify the font_path and circle_path parameters like so:
+
+```
+$ roslaunch bebop_teleop bebop_connection.launch font_path:="path/to/font.ttf/otf" circle_path:="path/to/circle.bmp"
+```
+
