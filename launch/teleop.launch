@@ -1,6 +1,8 @@
 <launch>
 	<arg name="font_path" default="/home/michionlion/catkin_ws/src/bebop_teleop/arial.ttf" />
+	<arg name="circle_path" default="/home/michionlion/catkin_ws/src/bebop_teleop/circle.bmp" />
 	<node name="bebop_teleop" pkg="bebop_teleop" type="bebop_teleop" required="true" output="screen">
 		<param name="font_path" value="$(arg font_path)"/>
+		<param name="circle_path" value="$(arg circle_path)"/>
 	</node>
 </launch>
