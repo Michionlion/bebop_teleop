@@ -12,4 +12,4 @@ $ roslaunch bebop_teleop bebop_connection.launch
 $ roslaunch bebop_teleop teleop.launch
 ```
 
-If a Bebop is not available, but you would still like to test the package, run `$rosrun bebop_teleop webcam` in place of `$roslaunch bebop_teleop bebop_connection.launch`. This will replace the Bebop camera feed with webcam feed in the GUI.
+If a Bebop is not available, but you would still like to test the package, run `$ rosrun bebop_teleop webcam` in place of `$ roslaunch bebop_teleop bebop_connection.launch`. This will replace the Bebop camera feed with webcam feed in the GUI.
