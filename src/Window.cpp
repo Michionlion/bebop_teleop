@@ -18,6 +18,7 @@
 Window* window;
 
 std::string Window::font_path;
+std::string Window::circle_path;
 
 GUIC* wifi;
 GUIC* batt;
@@ -30,12 +31,13 @@ GUIC* velx;
 GUIC* vely;
 GUIC* velz;
 
-GUIC* cmdx;
-GUIC* cmdy;
-GUIC* cmdz;
-GUIC* cmdr;
+// GUIC* cmdx;
+// GUIC* cmdy;
+// GUIC* cmdz;
+// GUIC* cmdr;
 
 GUIC* patrol;
+GUIC* cmd;
 
 GUIC* labels;
 GUIC* labelr;
@@ -188,25 +190,25 @@ void Window::update() {
 	velz->setText(str.str(), ren);
 	velz->render(ren);
 
-	reset(str);
-	str << "CMDX: " << PREC(2) << control->getLast()->linear.x;
-	cmdx->setText(str.str(), ren);
-	cmdx->render(ren);
+	// reset(str);
+	// str << "CMDX: " << PREC(2) << control->getLast()->linear.x;
+	// cmdx->setText(str.str(), ren);
+	// cmdx->render(ren);
 
-	reset(str);
-	str << "CMDY: " << PREC(2) << control->getLast()->linear.y;
-	cmdy->setText(str.str(), ren);
-	cmdy->render(ren);
+	// reset(str);
+	// str << "CMDY: " << PREC(2) << control->getLast()->linear.y;
+	// cmdy->setText(str.str(), ren);
+	// cmdy->render(ren);
 
-	reset(str);
-	str << "CMDZ: " << PREC(2) << control->getLast()->linear.z;
-	cmdz->setText(str.str(), ren);
-	cmdz->render(ren);
+	// reset(str);
+	// str << "CMDZ: " << PREC(2) << control->getLast()->linear.z;
+	// cmdz->setText(str.str(), ren);
+	// cmdz->render(ren);
 
-	reset(str);
-	str << "CMDR: " << PREC(2) << control->getLast()->angular.z;
-	cmdr->setText(str.str(), ren);
-	cmdr->render(ren);
+	// reset(str);
+	// str << "CMDR: " << PREC(2) << control->getLast()->angular.z;
+	// cmdr->setText(str.str(), ren);
+	// cmdr->render(ren);
 
 	reset(str);
 	str << PREC(2) << control->getSpeed();
@@ -228,6 +230,8 @@ void Window::update() {
 
 	patrol->render(ren);
 
+	cmd->callCB();
+	cmd->render(ren);
 
 	// FUCK THIS THING. SOLID 3 hours GOOONNNNEEE because it was in the if
 	SDL_RenderPresent(ren);
@@ -238,10 +242,10 @@ bool Window::ok() {
 }
 
 void destGUI() {
-	delete cmdx;
-	delete cmdy;
-	delete cmdz;
-	delete cmdr;
+	// delete cmdx;
+	// delete cmdy;
+	// delete cmdz;
+	// delete cmdr;
 	delete velx;
 	delete vely;
 	delete velz;
@@ -251,12 +255,23 @@ void destGUI() {
 	delete lon;
 	delete alt;
 	delete patrol;
+	delete speed;
+	delete speedr;
+	delete inc;
+	delete incr;
+	delete dec;
+	delete decr;
+	delete labels;
+	delete labelr;
+	delete cmd;
 }
 
 void Window::destroy() {
 	alive = false;
 
 	TTF_CloseFont(font);
+	SDL_DestroyTexture(video);
+	if(circle != NULL) SDL_DestroyTexture(circle);
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	destGUI();
@@ -281,10 +296,10 @@ void Window::makeGUI() {
 	lon = new GUIC(font, VIDEO_WIDTH + 4, Y + 24 + 4, -1, 24);
 	alt = new GUIC(font, VIDEO_WIDTH + 4, Y + 48 + 8, -1, 24);
 
-	cmdx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 8, -1, 24);
-	cmdy = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 7, -1, 24);
-	cmdz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 6, -1, 24);
-	cmdr = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 5, -1, 24);
+	// cmdx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 8, -1, 24);
+	// cmdy = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 7, -1, 24);
+	// cmdz = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 6, -1, 24);
+	// cmdr = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 5, -1, 24);
 
 	velx = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 3, -1, 24);
 	vely = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 2, -1, 24);
@@ -301,10 +316,10 @@ void Window::makeGUI() {
 	decr = new GUIC(font, X2 + 68 - H, Y, H, H);
 
 	// ensure you set colors before text
-	inc->setBG(100, 130, 100);
-	incr->setBG(100, 130, 100);
-	dec->setBG(130, 100, 100);
-	decr->setBG(130, 100, 100);
+	inc->setBG(100, 115, 100);
+	incr->setBG(100, 115, 100);
+	dec->setBG(115, 100, 100);
+	decr->setBG(115, 100, 100);
 	labels->setText("Spd:", ren, GUIC::RESIZE_X);
 	labelr->setText("Rot:", ren, GUIC::RESIZE_X);
 	inc->setText(" > ", ren, GUIC::RESIZE_NONE);
@@ -319,9 +334,92 @@ void Window::makeGUI() {
 	dec->setCallback([] (GUIC * g) {control->decSpeed();});
 	decr->setCallback([] (GUIC * g) {control->decRotSpeed();});
 
+
+	cmd = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 10, WINDOW_WIDTH - VIDEO_WIDTH - 8, 192);
+
+	cmd->setBG(20, 20, 20);
+	cmd->setFG(240, 240, 255);
+	cmd->setCallback(
+		[] (GUIC * g) {
+			static double drawnXV = 0;
+			static double drawnYV = 0;
+			static double drawnZV = 2;	// ensure redraw
+			static double drawnRV = 0;
+			if(drawnXV != control->getLast()->linear.x || drawnYV != control->getLast()->linear.y || drawnZV != control->getLast()->linear.z || drawnRV != control->getLast()->angular.z) {
+				// redraw texture and setBG
+				// ROS_INFO("%f", drawnXV);
+				drawnXV = control->getLast()->linear.x;
+				drawnYV = control->getLast()->linear.y;
+				drawnZV = control->getLast()->linear.z;
+				drawnRV = control->getLast()->angular.z;
+				SDL_Texture* tex = g->getTexture() != NULL ? g->getTexture() : SDL_CreateTexture(window->ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, g->getBounds()->w, g->getBounds()->h);
+				if(window->circle == NULL) window->initCircle(g->getBounds()->w);
+				SDL_SetRenderTarget(window->ren, tex);
+				SDL_RenderClear(window->ren);
+				SDL_Rect dst = {0, g->getBounds()->h - g->getBounds()->w, g->getBounds()->w, g->getBounds()->w};
+				SDL_RenderCopy(window->ren, window->circle, NULL, &dst);
+
+				SDL_SetRenderDrawColor(window->ren, 200, 200, 255, 255);
+				int cx = g->getBounds()->w / 2;
+				int cy = g->getBounds()->h - cx;
+				int cr = cx * control->getSpeed();
+				double angle = atan2(-drawnYV, drawnXV);
+
+				// determine line endpoints with sin/cos
+				if(drawnXV != 0 || drawnYV != 0) SDL_RenderDrawLine( window->ren, cx, cy, cx + cr * sin(angle), cy - cr * cos(angle) );
+
+				int h = g->getBounds()->h - g->getBounds()->w - 5;
+				if(drawnZV > 0) {
+					SDL_RenderDrawLine(window->ren, cx, 0, cx, h / 2);
+
+					// SDL_RenderDrawLine(window->ren, cx - 1, 3, cx - 1, h / 2);
+					// SDL_RenderDrawLine(window->ren, cx + 1, 3, cx + 1, h / 2);
+					SDL_RenderDrawLine(window->ren, cx, 0, cx + 3, 5);
+					SDL_RenderDrawLine(window->ren, cx, 0, cx - 3, 5);
+				} else if(drawnZV < 0) {
+					SDL_RenderDrawLine(window->ren, cx, h / 2, cx, h);
+
+					// SDL_RenderDrawLine(window->ren, cx - 1, h / 2, cx - 1, h - 3);
+					// SDL_RenderDrawLine(window->ren, cx + 1, h / 2, cx + 1, h - 3);
+					SDL_RenderDrawLine(window->ren, cx, h, cx + 3, h - 5);
+					SDL_RenderDrawLine(window->ren, cx, h, cx - 3, h - 5);
+				}
+				double w = h / 4.0;
+				double hh = h / 2.0 - 1;
+				if(drawnRV > 0) {
+					SDL_RenderDrawLine(window->ren, cx - 8, h / 4.0, cx - 8 - 0.4 * w, h / 4.0);
+					SDL_RenderDrawLine(window->ren, cx - 8 - 0.4 * w, h / 4.0, cx - 8 - 0.8 * w, h / 4.0 + 0.125 * hh);
+					SDL_RenderDrawLine(window->ren, cx - 8 - 0.8 * w, h / 4.0 + 0.125 * hh, cx - 8 - w, h / 4.0 + 0.375 * hh);
+					SDL_RenderDrawLine(window->ren, cx - 8 - w, h / 4.0 + 0.375 * hh, cx - 8 - w, h / 4.0 + 0.625 * hh);
+					SDL_RenderDrawLine(window->ren, cx - 8 - w, h / 4.0 + 0.625 * hh, cx - 8 - 0.8 * w, h / 4.0 + 0.875 * hh);
+					SDL_RenderDrawLine(window->ren, cx - 8 - 0.8 * w, h / 4.0 + 0.875 * hh, cx - 8 - 0.4 * w, h / 4.0 + hh);
+					SDL_RenderDrawLine(window->ren, cx - 8 - 0.4 * w, h / 4.0 + hh, cx - 8, h / 4.0 + hh);
+					SDL_RenderDrawLine(window->ren, cx - 8, h / 4.0 + hh, cx - 12, h / 4.0 + hh + 4);
+					SDL_RenderDrawLine(window->ren, cx - 8, h / 4.0 + hh, cx - 12, h / 4.0 + hh - 4);
+				} else if(drawnRV < 0) {
+					// hh += 2;
+					w += 1;
+					SDL_RenderDrawLine(window->ren, cx + 8, h / 4.0, cx + 8 + 0.4 * w, h / 4.0);
+					SDL_RenderDrawLine(window->ren, cx + 8 + 0.4 * w, h / 4.0, cx + 8 + 0.8 * w, h / 4.0 + 0.125 * hh);
+					SDL_RenderDrawLine(window->ren, cx + 8 + 0.8 * w, h / 4.0 + 0.125 * hh, cx + 8 + w, h / 4.0 + 0.375 * hh);
+					SDL_RenderDrawLine(window->ren, cx + 8 + w, h / 4.0 + 0.375 * hh, cx + 8 + w, h / 4.0 + 0.625 * hh);
+					SDL_RenderDrawLine(window->ren, cx + 8 + w, h / 4.0 + 0.625 * hh, cx + 8 + 0.8 * w, h / 4.0 + 0.875 * hh);
+					SDL_RenderDrawLine(window->ren, cx + 8 + 0.8 * w, h / 4.0 + 0.875 * hh, cx + 8 + 0.4 * w, h / 4.0 + hh);
+					SDL_RenderDrawLine(window->ren, cx + 8 + 0.4 * w, h / 4.0 + hh, cx + 8, h / 4.0 + hh);
+					SDL_RenderDrawLine(window->ren, cx + 8, h / 4.0 + hh, cx + 12, h / 4.0 + hh + 4);
+					SDL_RenderDrawLine(window->ren, cx + 8, h / 4.0 + hh, cx + 12, h / 4.0 + hh - 4);
+				}
+
+				SDL_SetRenderDrawColor(window->ren, 0, 0, 0, 255);	// reset draw color
+				SDL_SetRenderTarget(window->ren, NULL);	// unset render target
+				g->setTexture(tex);
+			}
+		});
+
+
 	patrol = new GUIC(font, VIDEO_WIDTH + 4, WINDOW_HEIGHT - 28 * 11, -1, 24);
 	patrol->setBG(100, 100, 100);
-	patrol->setText(" start patrol ", ren);
+	patrol->setText(" Start Patrol ", ren);
 	patrol->setCallback(
 		[this](GUIC * g) {
 			if(g->getText()[3] == 'o') {
@@ -334,6 +432,32 @@ void Window::makeGUI() {
 				patroller->start(2, 0.25, 0.08);
 			}
 		});
+}
+
+void Window::initCircle(int w) {
+	SDL_Surface* srf = SDL_LoadBMP( circle_path.c_str() );
+	SDL_Texture* circ = NULL;
+	if(srf == NULL) {
+		ROS_ERROR( "TEXTURE LOAD FAIL: %s", SDL_GetError() );
+		circ = SDL_CreateTexture(window->ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, w, w);
+	} else {
+		circ = SDL_CreateTextureFromSurface(window->ren, srf);
+		SDL_FreeSurface(srf);
+	}
+	if(circ == NULL) {
+		ROS_ERROR( "TEXTURE LOAD FAIL: %s", SDL_GetError() );
+
+		// use blank texture
+		circ = SDL_CreateTexture(window->ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, w, w);
+	}
+	window->circle = SDL_CreateTexture(window->ren, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, w, w);
+	SDL_SetRenderTarget(window->ren, window->circle);	// set target to circle tex
+	SDL_RenderCopy(window->ren, circ, NULL, NULL);	// copy the loaded texture (circ) to circle tex
+	// SDL_SetRenderDrawColor(window->ren, 255, 0, 0, 255);
+	// SDL_RenderFillRect(window->ren, NULL);
+	// SDL_SetRenderDrawColor(window->ren, 0, 0, 0, 255);
+	SDL_SetRenderTarget(window->ren, NULL);	// go back to screen rendering
+	SDL_DestroyTexture(circ);
 }
 
 bool Window::init() {

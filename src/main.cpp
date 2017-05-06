@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle local_nh("~");
 
 	local_nh.param( "font_path", Window::font_path, std::string("/usr/share/fonts/truetype/freefont/FreeSans.ttf") );
+	local_nh.param( "circle_path", Window::circle_path, std::string("/home/michionlion/catkin_ws/src/bebop_teleop/circle.bmp") );
 
 	bool fail = false;
 	input = new Input();

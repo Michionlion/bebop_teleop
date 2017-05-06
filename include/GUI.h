@@ -13,6 +13,7 @@ public:
 	void setText(std::string, SDL_Renderer*);
 	std::string getText(void) const;
 	void setTexture(SDL_Texture*);
+	SDL_Texture* getTexture(void) const;
 	void render(SDL_Renderer*);
 	bool inside(int, int) const;
 	void callCB(void);

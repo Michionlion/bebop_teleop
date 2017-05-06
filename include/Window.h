@@ -21,13 +21,17 @@ public:
 
 	void updateVideoTexture(const sensor_msgs::ImageConstPtr&);
 
+	void initCircle(int);
+
 	static std::string font_path;
+	static std::string circle_path;
 private:
-	SDL_Window* win;
-	SDL_Renderer* ren;
-	SDL_Texture* video;
+	SDL_Window* win = NULL;
+	SDL_Renderer* ren = NULL;
+	SDL_Texture* video = NULL;
+	SDL_Texture* circle = NULL;
 	sensor_msgs::Image image;
-	TTF_Font* font;
+	TTF_Font* font = NULL;
 	bool video_dirty = false;
 	bool alive = false;
 	bool init(void);

@@ -60,8 +60,12 @@ std::string GUIC::getText() const {
 	return text;
 }
 
+SDL_Texture* GUIC::getTexture() const {
+	return texture;
+}
+
 void GUIC::setTexture(SDL_Texture* tex) {
-	if(texture != NULL) {
+	if(texture != NULL && tex != texture) {
 		SDL_DestroyTexture(texture);
 		texture = NULL;
 	}
