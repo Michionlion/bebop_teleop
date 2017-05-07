@@ -59,21 +59,25 @@ void Patroller::patrol() {
 	switch(current_state.direction) {
 	case FORWARD:
 		vel.linear.x = speed;
+		vel.linear.y = 0;
 		control->send(&vel);
 		return;
 
 	case RIGHT:
 		vel.linear.y = -speed;
+		vel.linear.x = 0;
 		control->send(&vel);
 		return;
 
 	case BACKWARD:
 		vel.linear.x = -speed;
+		vel.linear.y = 0;
 		control->send(&vel);
 		return;
 
 	case LEFT:
 		vel.linear.y = speed;
+		vel.linear.x = 0;
 		control->send(&vel);
 		return;
 	}
