@@ -23,7 +23,7 @@ public:
 	void destroy(void);
 
 	void patrol(void);
-	void start(double, double, double);
+	void start(double, double);
 	void stop(void);
 
 private:

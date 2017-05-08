@@ -17,20 +17,14 @@ void Patroller::destroy() {}
 
 void Patroller::checkState() {
 	// switch statement in case we need to check signage
-	ROS_INFO( "OFF: %f %f", fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x), fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) );
+	// ROS_INFO( "OFF: x: %f Y: %f", fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x), fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) );
 	switch(current_state.direction) {
 	case FORWARD:
-		if(fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
-		break;
-
-	case RIGHT:
-		if(fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
-		break;
-
 	case BACKWARD:
 		if(fabs(stats->getOdom()->pose.pose.position.x - current_state.start.x) >= current_state.distance) nextState();
 		break;
 
+	case RIGHT:
 	case LEFT:
 		if(fabs(stats->getOdom()->pose.pose.position.y - current_state.start.y) >= current_state.distance) nextState();
 		break;
@@ -45,42 +39,60 @@ void Patroller::nextState() {
 	current_state.direction = (current_state.direction + 1) % 4;
 
 	if(current_state.direction == BACKWARD && current_state.distance > radius) patrolling = false;
+
+	// ROS_INFO("SWITCHING TO STATE: DIR: %d DIS: %f", current_state.direction, current_state.distance);
 }
 
 // simple reflex function that responds to current altitude of bebop and state information
 void Patroller::patrol() {
 	if(!patrolling) return;
 
+	double off = 0;
+
+	// ROS_INFO("PATROLLING WITH STATE: DIR: %d DIS: %f", current_state.direction, current_state.distance);
+
 	checkState();
 	geometry_msgs::Twist vel;
-
-	ROS_INFO("STATE: DIR: %d DIS: %f", current_state.direction, current_state.distance);
-
+	speed = control->getSpeed();
 	switch(current_state.direction) {
 	case FORWARD:
+
+		// ROS_INFO("EXECUTING FORWARD");
 		vel.linear.x = speed;
-		vel.linear.y = 0;
+		off = (stats->getOdom()->pose.pose.position.y - current_state.start.y);
+		vel.linear.y = (off > 0) ? fmin(off, speed) : fmax(off, -speed);
 		control->send(&vel);
-		return;
+		break;
 
 	case RIGHT:
+
+		// ROS_INFO("EXECUTING RIGHT");
 		vel.linear.y = -speed;
-		vel.linear.x = 0;
+		off = (stats->getOdom()->pose.pose.position.x - current_state.start.x);
+		vel.linear.x = (off > 0) ? fmin(off, speed) : fmax(off, -speed);
 		control->send(&vel);
-		return;
+		break;
 
 	case BACKWARD:
+
+		// ROS_INFO("EXECUTING BACKWARD");
 		vel.linear.x = -speed;
-		vel.linear.y = 0;
+		off = (stats->getOdom()->pose.pose.position.y - current_state.start.y);
+		vel.linear.y = (off > 0) ? fmin(off, speed) : fmax(off, -speed);
 		control->send(&vel);
-		return;
+		break;
 
 	case LEFT:
+
+		// ROS_INFO("EXECUTING LEFT");
 		vel.linear.y = speed;
-		vel.linear.x = 0;
+		off = (stats->getOdom()->pose.pose.position.x - current_state.start.x);
+		vel.linear.x = (off > 0) ? fmin(off, speed) : fmax(off, -speed);
 		control->send(&vel);
-		return;
+		break;
 	}
+
+	// ROS_INFO("SENT X: %f Y: %f", vel.linear.x, vel.linear.y);
 }
 
 void Patroller::stop() {
@@ -89,12 +101,11 @@ void Patroller::stop() {
 	if( !control->isEnabled() ) control->toggle();
 }
 
-void Patroller::start(double altitude, double spacing, double speed) {
+void Patroller::start(double altitude, double spacing) {
 	ROS_INFO("STARTING PATROL");
 	if( control->isEnabled() ) control->toggle();
 	radius = (int) ceil(altitude);
 	this->spacing = spacing;
-	this->speed = speed;
 	patrolling = true;
 
 	current_state.distance = spacing;
