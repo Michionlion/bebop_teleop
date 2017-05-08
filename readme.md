@@ -21,3 +21,32 @@ Some asset files may need to be configured. You can see what can be changed by e
 $ roslaunch bebop_teleop bebop_connection.launch font_path:="path/to/font.ttf/otf" circle_path:="path/to/circle.bmp"
 ```
 
+##### Teleop Keyboard Mappings
+|      Key      |        Command         |
+|---------------|------------------------|
+|       W       |        Forward         |
+|       A       |          Left          |
+|       S       |        Backward        |
+|       D       |          Right         |
+|     SPACE     |           Up           |
+|     LSHIFT    |          Down          |
+|     ENTER     |        Rotor Stop      |
+|     RSHIFT    |         Takeoff        |
+|      CTRL     |          Land          |
+|       I       |      Forward Flip      |
+|       J       |        Left Flip       |
+|       K       |      Backward Flip     |
+|       L       |        Right Flip      |
+|    ARROW UP   |        Camera Up       |
+|   ARROW DOWN  |       Camera Down      |
+|   ARROW LEFT  |       Camera Left      |
+|   ARROW RIGHT |       Camera Right     |
+|       1       |        Inc. Speed      |
+|       2       |        Dec. Speed      |
+|       3       |     Inc. Rot. Speed    |
+|       4       |     Dec. Rot. Speed    |
+|       7       |       Start Patrol     |
+|       8       |        Stop Patrol     |
+|       0       |      Toggle Control    |
+|       [       |    Start Nav. Home     |
+|       ]       |     Stop Nav. Home     |
