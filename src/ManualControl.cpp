@@ -84,7 +84,7 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			break;
 
 		case SDL_SCANCODE_7:
-			patroller->start(2, 0.25, 0.08);
+			patroller->start(3, 1);
 			break;
 
 		case SDL_SCANCODE_8:

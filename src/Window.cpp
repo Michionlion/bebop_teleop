@@ -429,7 +429,7 @@ void Window::makeGUI() {
 			} else {
 				g->setBG(170, 70, 70);
 				g->setText(" Stop Patrol ", ren, 0);
-				patroller->start(2, 0.25, 0.08);
+				patroller->start(3, 1);
 			}
 		});
 }
