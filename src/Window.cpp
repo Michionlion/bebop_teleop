@@ -429,7 +429,10 @@ void Window::makeGUI() {
 			} else {
 				g->setBG(170, 70, 70);
 				g->setText(" Stop Patrol ", ren, 0);
-				patroller->start(3, 1);
+
+				// use altitude if available (isnanf returns 0 if it is a nan, evaluating the if to false)
+				if( isnanf( stats->getAltitude() ) ) patroller->start(stats->getAltitude(), 1);
+				else patroller->start(3, 1);
 			}
 		});
 }

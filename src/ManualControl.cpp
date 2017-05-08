@@ -1,6 +1,7 @@
 #include "Input.h"
 #include "ManualControl.h"
 #include "Patroller.h"
+#include "StateTracker.h"
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -84,7 +85,10 @@ void ManualControl::key(SDL_KeyboardEvent* event) {
 			break;
 
 		case SDL_SCANCODE_7:
-			patroller->start(3, 1);
+
+			// use altitude if available (isnanf returns 0 if it is a nan, evaluating the if to false)
+			if( isnanf( stats->getAltitude() ) ) patroller->start(stats->getAltitude(), 1);
+			else patroller->start(3, 1);
 			break;
 
 		case SDL_SCANCODE_8:
